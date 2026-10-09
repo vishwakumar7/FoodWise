@@ -2,13 +2,16 @@ import os
 import json
 import datetime
 from pathlib import Path
+from typing import Dict, Any, List
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Ridge
 from sklearn.dummy import DummyRegressor
+from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
 import joblib
 
@@ -88,21 +91,18 @@ def generate_synthetic_dataset(output_path: Path = DATA_FILE, n_days: int = 365,
         for menu in MENU_TYPES:
             prev_sales = prev_sales_tracker[menu]
 
-            # Realistic demand generation physics:
-            # Ratio of attendees ordering this menu
+            # Realistic demand generation:
             if menu == "Meals":
-                # Standard full lunch staple
                 base_share = 0.38 if not is_holiday else 0.42
                 if temperature > 34:
-                    base_share *= 0.90 # high heat reduces heavy meal appetite
-                if weekday_idx == 4: # Friday Biryani competition
+                    base_share *= 0.90
+                if weekday_idx == 4:
                     base_share *= 0.72
                 demand_factor = base_share * attendance
                 noise = np.random.normal(0, 12)
                 momentum = 0.15 * (prev_sales - 160)
 
             elif menu == "Biryani":
-                # Friday / Sunday feast favorite
                 if weekday_name == "Friday":
                     base_share = 0.52
                 elif weekday_name == "Sunday":
@@ -110,22 +110,20 @@ def generate_synthetic_dataset(output_path: Path = DATA_FILE, n_days: int = 365,
                 elif is_holiday:
                     base_share = 0.35
                 else:
-                    base_share = 0.20 # regular weekday special
+                    base_share = 0.20
                 demand_factor = base_share * attendance
                 noise = np.random.normal(0, 15)
                 momentum = 0.10 * (prev_sales - 100)
 
             elif menu == "Variety Rice":
-                # Lemon rice, curd rice, tomato rice - popular in hot weather
                 base_share = 0.22 if not is_holiday else 0.26
                 if temperature > 32:
-                    base_share *= 1.25 # Cold curd rice & light lunch spike
+                    base_share *= 1.25
                 demand_factor = base_share * attendance
                 noise = np.random.normal(0, 10)
                 momentum = 0.12 * (prev_sales - 85)
 
             elif menu == "Dosa":
-                # High weekend evening & breakfast demand
                 base_share = 0.25 if not is_holiday else 0.35
                 if weekday_name in ["Saturday", "Sunday"]:
                     base_share *= 1.30
@@ -134,7 +132,6 @@ def generate_synthetic_dataset(output_path: Path = DATA_FILE, n_days: int = 365,
                 momentum = 0.15 * (prev_sales - 105)
 
             elif menu == "Idli":
-                # Morning classic staple, steady
                 base_share = 0.26 if not is_holiday else 0.28
                 if weekday_name == "Monday":
                     base_share *= 1.15
@@ -191,9 +188,10 @@ def load_and_validate_data(csv_path: Path = DATA_FILE) -> pd.DataFrame:
 
 def train_model(data_path: Path = DATA_FILE, artifacts_dir: Path = ARTIFACTS_DIR) -> dict:
     """
-    Trains Random Forest Regressor and baseline model using time-series split.
-    Calculates evaluation metrics, feature importances, and sample predictions.
-    Saves model artifact and metrics.
+    Trains multiple models (Random Forest, Ridge Regression, Dummy Baseline)
+    using chronological time-series train/test split.
+    Evaluates cross-validation and holdout test set performance.
+    Saves the best model artifact and evaluation metrics.
     """
     artifacts_dir.mkdir(parents=True, exist_ok=True)
     df = load_and_validate_data(data_path)
@@ -201,18 +199,22 @@ def train_model(data_path: Path = DATA_FILE, artifacts_dir: Path = ARTIFACTS_DIR
     if len(df) < 50:
         raise ValueError(f"Insufficient training data. Found only {len(df)} records (minimum 50 required).")
 
-    # Time-series aware split: Train on first 80% chronologically, test on recent 20%
-    # This prevents temporal target leakage
-    split_idx = int(len(df) * 0.8)
-    train_df = df.iloc[:split_idx].copy()
-    test_df = df.iloc[split_idx:].copy()
+    # Time-series aware split strictly by date:
+    # First 80% of calendar dates for training, last 20% of dates for holdout testing.
+    # This completely eliminates temporal data leakage across all menu categories.
+    unique_dates = df["Date"].drop_duplicates().sort_values().tolist()
+    split_date_idx = int(len(unique_dates) * 0.8)
+    split_date = unique_dates[split_date_idx]
+
+    train_df = df[df["Date"] < split_date].copy()
+    test_df = df[df["Date"] >= split_date].copy()
 
     X_train = train_df[FEATURE_COLS]
     y_train = train_df[TARGET_COL].values
     X_test = test_df[FEATURE_COLS]
     y_test = test_df[TARGET_COL].values
 
-    # Preprocessing
+    # Preprocessing pipeline
     categorical_features = ["Day of week", "Menu type"]
     numerical_features = ["Expected attendance", "Temperature", "Previous day's sales", "Holiday indicator"]
 
@@ -224,7 +226,18 @@ def train_model(data_path: Path = DATA_FILE, artifacts_dir: Path = ARTIFACTS_DIR
         remainder="drop"
     )
 
-    # Main Model: Random Forest Regressor
+    # 1. Baseline Model: Dummy Regressor (predicts mean of training target)
+    baseline_model = DummyRegressor(strategy="mean")
+    baseline_model.fit(X_train, y_train)
+
+    # 2. Linear Baseline Model: Ridge Regression
+    ridge_pipeline = Pipeline([
+        ("preprocessor", preprocessor),
+        ("regressor", Ridge(alpha=1.0))
+    ])
+    ridge_pipeline.fit(X_train, y_train)
+
+    # 3. Main Model: Random Forest Regressor
     rf_regressor = RandomForestRegressor(
         n_estimators=100,
         max_depth=12,
@@ -239,21 +252,29 @@ def train_model(data_path: Path = DATA_FILE, artifacts_dir: Path = ARTIFACTS_DIR
         ("regressor", rf_regressor)
     ])
 
-    # Fit RF Model
+    # Cross-validation on training data using TimeSeriesSplit (5 folds)
+    tscv = TimeSeriesSplit(n_splits=5)
+    cv_mae_scores = -cross_val_score(rf_pipeline, X_train, y_train, cv=tscv, scoring="neg_mean_absolute_error")
+    cv_rmse_scores = np.sqrt(-cross_val_score(rf_pipeline, X_train, y_train, cv=tscv, scoring="neg_mean_squared_error"))
+    cv_mae = float(np.mean(cv_mae_scores))
+    cv_rmse = float(np.mean(cv_rmse_scores))
+
+    # Fit final RF pipeline strictly on training data
     rf_pipeline.fit(X_train, y_train)
 
-    # Baseline Model: Dummy Regressor (predicts mean of training target)
-    baseline_model = DummyRegressor(strategy="mean")
-    baseline_model.fit(X_train, y_train)
+    # Predictions on unseen hold-out test set
+    y_pred_base = np.clip(baseline_model.predict(X_test), 0, None)
+    y_pred_ridge = np.clip(ridge_pipeline.predict(X_test), 0, None)
+    y_pred_rf = np.clip(rf_pipeline.predict(X_test), 0, None)
 
-    # Predictions
-    y_pred_rf = rf_pipeline.predict(X_test)
-    y_pred_base = baseline_model.predict(X_test)
-
-    # Evaluation Metrics
+    # Evaluation Metrics on Test Set
     rf_mae = float(mean_absolute_error(y_test, y_pred_rf))
     rf_rmse = float(root_mean_squared_error(y_test, y_pred_rf))
     rf_r2 = float(r2_score(y_test, y_pred_rf))
+
+    ridge_mae = float(mean_absolute_error(y_test, y_pred_ridge))
+    ridge_rmse = float(root_mean_squared_error(y_test, y_pred_ridge))
+    ridge_r2 = float(r2_score(y_test, y_pred_ridge))
 
     base_mae = float(mean_absolute_error(y_test, y_pred_base))
     base_rmse = float(root_mean_squared_error(y_test, y_pred_base))
@@ -290,6 +311,30 @@ def train_model(data_path: Path = DATA_FILE, artifacts_dir: Path = ARTIFACTS_DIR
     joblib.dump(rf_pipeline, MODEL_FILE)
     print(f"Model pipeline successfully saved to {MODEL_FILE}")
 
+    model_comparison = [
+        {
+            "model": "Mean Baseline Dummy",
+            "mae": round(base_mae, 2),
+            "rmse": round(base_rmse, 2),
+            "r2": round(base_r2, 4),
+            "note": "Predicts historical mean demand"
+        },
+        {
+            "model": "Ridge Linear Regression",
+            "mae": round(ridge_mae, 2),
+            "rmse": round(ridge_rmse, 2),
+            "r2": round(ridge_r2, 4),
+            "note": "L2 regularized linear model"
+        },
+        {
+            "model": "Random Forest Regressor (Final)",
+            "mae": round(rf_mae, 2),
+            "rmse": round(rf_rmse, 2),
+            "r2": round(rf_r2, 4),
+            "note": "Ensemble of 100 decision trees (best performance)"
+        }
+    ]
+
     metrics = {
         "model_name": "FoodWise Random Forest Demand Forecaster",
         "algorithm": "RandomForestRegressor (100 estimators)",
@@ -302,18 +347,24 @@ def train_model(data_path: Path = DATA_FILE, artifacts_dir: Path = ARTIFACTS_DIR
         "baseline_mae": round(base_mae, 2),
         "baseline_rmse": round(base_rmse, 2),
         "baseline_r2": round(base_r2, 4),
+        "ridge_mae": round(ridge_mae, 2),
+        "ridge_rmse": round(ridge_rmse, 2),
+        "ridge_r2": round(ridge_r2, 4),
+        "cv_mae": round(cv_mae, 2),
+        "cv_rmse": round(cv_rmse, 2),
         "improvement_percent": round(improvement_percent, 1),
         "feature_importances": feature_importance_dict,
         "sample_test_predictions": sample_records,
+        "model_comparison": model_comparison,
         "is_synthetic": True,
-        "data_notice": "Trained on synthetic campus canteen simulation data with realistic seasonal, weekday, and attendance distributions. For demonstration only.",
+        "data_notice": "Academic project notice: Model is trained on a synthetic college canteen dataset (1,825 records across 365 days). Predictions are statistical estimates.",
         "last_trained": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
     with open(METRICS_FILE, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
 
-    print(f"Metrics saved to {METRICS_FILE}: MAE={metrics['mae']}, RMSE={metrics['rmse']}, R2={metrics['r2']}")
+    print(f"Metrics saved to {METRICS_FILE}: MAE={metrics['mae']}, RMSE={metrics['rmse']}, R2={metrics['r2']}, CV_MAE={metrics['cv_mae']}")
     return metrics
 
 

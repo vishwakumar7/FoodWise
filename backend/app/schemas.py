@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -100,9 +100,15 @@ class ModelMetricsResponse(BaseModel):
     baseline_mae: float
     baseline_rmse: float
     baseline_r2: float
+    ridge_mae: Optional[float] = None
+    ridge_rmse: Optional[float] = None
+    ridge_r2: Optional[float] = None
+    cv_mae: Optional[float] = None
+    cv_rmse: Optional[float] = None
     improvement_percent: float
     feature_importances: Dict[str, float]
     sample_test_predictions: List[Dict]
+    model_comparison: Optional[List[Dict[str, Any]]] = None
     is_synthetic: bool
     data_notice: str
     last_trained: str

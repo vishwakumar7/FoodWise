@@ -10,6 +10,11 @@
   "baseline_mae": 36.7,
   "baseline_rmse": 47.41,
   "baseline_r2": -0.0003,
+  "ridge_mae": 18.98,
+  "ridge_rmse": 26.19,
+  "ridge_r2": 0.6948,
+  "cv_mae": 11.48,
+  "cv_rmse": 14.56,
   "improvement_percent": 71.5,
   "feature_importances": {
     "Expected attendance": 0.5297,
@@ -451,7 +456,30 @@
       "error": 22.5
     }
   ],
+  "model_comparison": [
+    {
+      "model": "Mean Baseline Dummy",
+      "mae": 36.7,
+      "rmse": 47.41,
+      "r2": -0.0003,
+      "note": "Predicts historical mean demand"
+    },
+    {
+      "model": "Ridge Linear Regression",
+      "mae": 18.98,
+      "rmse": 26.19,
+      "r2": 0.6948,
+      "note": "L2 regularized linear model"
+    },
+    {
+      "model": "Random Forest Regressor (Final)",
+      "mae": 10.45,
+      "rmse": 13.1,
+      "r2": 0.9236,
+      "note": "Ensemble of 100 decision trees (best performance)"
+    }
+  ],
   "is_synthetic": true,
-  "data_notice": "Trained on synthetic campus canteen simulation data with realistic seasonal, weekday, and attendance distributions. For demonstration only.",
-  "last_trained": "2026-10-09 11:23:02"
+  "data_notice": "Academic project notice: Model is trained on a synthetic college canteen dataset (1,825 records across 365 days). Predictions are statistical estimates.",
+  "last_trained": "2026-10-09 14:16:22"
 }

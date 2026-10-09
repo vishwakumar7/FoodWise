@@ -92,6 +92,14 @@ export interface SamplePrediction {
   error: number;
 }
 
+export interface ModelComparisonItem {
+  model: string;
+  mae: number;
+  rmse: number;
+  r2: number;
+  note: string;
+}
+
 export interface ModelMetrics {
   model_name: string;
   algorithm: string;
@@ -104,9 +112,15 @@ export interface ModelMetrics {
   baseline_mae: number;
   baseline_rmse: number;
   baseline_r2: number;
+  ridge_mae?: number;
+  ridge_rmse?: number;
+  ridge_r2?: number;
+  cv_mae?: number;
+  cv_rmse?: number;
   improvement_percent: number;
   feature_importances: Record<string, number>;
   sample_test_predictions: SamplePrediction[];
+  model_comparison?: ModelComparisonItem[];
   is_synthetic: boolean;
   data_notice: string;
   last_trained: string;
