@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Activity,
-  RefreshCw,
-  CheckCircle2,
-  AlertTriangle,
-  Info
-} from 'lucide-react';
-import {
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -48,9 +41,9 @@ export const ModelPage: React.FC = () => {
     try {
       const res = await api.retrainModel();
       setMetrics(res.metrics);
-      setRetrainMsg('Pipeline retrained and reloaded into active memory successfully.');
+      setRetrainMsg('Model retrained successfully on latest dataset.');
     } catch (err: any) {
-      setError(err.message || 'Pipeline retraining failed');
+      setError(err.message || 'Retraining failed');
     } finally {
       setRetraining(false);
     }
@@ -64,185 +57,108 @@ export const ModelPage: React.FC = () => {
     : [];
 
   return (
-    <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="border-b border-line pb-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-500">
-              <span>Statistical Validation</span>
-              <span>•</span>
-              <span className="text-olive-700">Pipeline Performance & Weights</span>
-            </div>
-            <h2 className="font-serif text-2xl lg:text-3xl font-bold text-ink-950 tracking-tight mt-1">
-              Model Diagnostics & Evaluation
-            </h2>
-            <p className="text-xs text-ink-500 mt-1 max-w-2xl">
-              Inspect test metrics, feature weights, and residual errors computed on strictly unseen chronological test observations.
-            </p>
-          </div>
-
-          <button
-            onClick={handleRetrain}
-            disabled={retraining}
-            className="px-4 py-2 rounded text-xs font-semibold bg-olive-700 hover:bg-olive-800 text-white flex items-center gap-2 transition-colors disabled:opacity-50 shrink-0"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${retraining ? 'animate-spin' : ''}`} />
-            {retraining ? 'Retraining Pipeline...' : 'Retrain Pipeline via API'}
-          </button>
+      <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-gray-800">ML Model Performance & Evaluation</h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Random Forest Regressor trained on 1,825 records with 80% train / 20% test chronological split.
+          </p>
         </div>
+
+        <button
+          onClick={handleRetrain}
+          disabled={retraining}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2 px-3.5 rounded transition-colors disabled:opacity-50"
+        >
+          {retraining ? 'Retraining...' : 'Retrain Model'}
+        </button>
       </div>
 
       {retrainMsg && (
-        <div className="p-3 rounded border border-olive-200 bg-olive-50 text-olive-800 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-olive-600" />
-          <span>{retrainMsg}</span>
+        <div className="bg-green-50 border border-green-200 text-green-700 text-xs p-3 rounded">
+          {retrainMsg}
         </div>
       )}
 
-      {/* Architecture Spec Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card border border-line rounded-lg p-4">
-          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Algorithm</span>
-          <div className="font-serif text-xl font-bold text-ink-950 mt-1">Random Forest</div>
-          <span className="text-[11px] text-ink-400 mt-0.5 block font-mono">100 Trees • Max Depth 12</span>
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white border border-gray-200 rounded-md p-3.5 text-center">
+          <div className="text-xs text-gray-500 font-medium">Model R² Score</div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{metrics?.r2}</div>
         </div>
+        <div className="bg-white border border-gray-200 rounded-md p-3.5 text-center">
+          <div className="text-xs text-gray-500 font-medium">Mean Absolute Error</div>
+          <div className="text-2xl font-bold text-gray-800 mt-1">{metrics?.mae} meals</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-md p-3.5 text-center">
+          <div className="text-xs text-gray-500 font-medium">Baseline Error</div>
+          <div className="text-2xl font-bold text-gray-500 mt-1">{metrics?.baseline_mae} meals</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-md p-3.5 text-center">
+          <div className="text-xs text-gray-500 font-medium">Accuracy Gain</div>
+          <div className="text-2xl font-bold text-green-600 mt-1">+{metrics?.improvement_percent}%</div>
+        </div>
+      </div>
 
-        <div className="bg-card border border-line rounded-lg p-4">
-          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Temporal Partition</span>
-          <div className="font-serif text-xl font-bold text-ink-950 mt-1 font-tabular">
-            {metrics?.train_records} / {metrics?.test_records}
+      {/* Evaluation Table & Feature Importance */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Table */}
+        <div className="bg-white border border-gray-200 rounded-md p-4 space-y-3">
+          <h3 className="font-semibold text-sm text-gray-800 border-b border-gray-100 pb-2">
+            Evaluation Metrics Comparison
+          </h3>
+
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
+              <tr>
+                <th className="py-2 px-3">Metric</th>
+                <th className="py-2 px-3 text-right">Baseline Model</th>
+                <th className="py-2 px-3 text-right">Random Forest</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-gray-700">
+              <tr>
+                <td className="py-2 px-3 font-medium">MAE (Mean Absolute Error)</td>
+                <td className="py-2 px-3 text-right text-gray-500">{metrics?.baseline_mae} meals</td>
+                <td className="py-2 px-3 text-right font-bold text-blue-600">{metrics?.mae} meals</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 font-medium">RMSE (Root Mean Squared Error)</td>
+                <td className="py-2 px-3 text-right text-gray-500">{metrics?.baseline_rmse} meals</td>
+                <td className="py-2 px-3 text-right font-bold text-blue-600">{metrics?.rmse} meals</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 font-medium">R² Score</td>
+                <td className="py-2 px-3 text-right text-gray-500">{metrics?.baseline_r2}</td>
+                <td className="py-2 px-3 text-right font-bold text-blue-600">{metrics?.r2}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="text-[11px] text-gray-500 pt-2 border-t border-gray-100">
+            Note: Baseline model uses DummyRegressor predicting average demand. The Random Forest model achieves a +{metrics?.improvement_percent}% reduction in forecast error.
           </div>
-          <span className="text-[11px] text-ink-400 mt-0.5 block font-mono">80% Train, 20% Test (No Leakage)</span>
         </div>
 
-        <div className="bg-card border border-line rounded-lg p-4">
-          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Test Set R²</span>
-          <div className="font-serif text-2xl font-bold text-olive-800 mt-1 font-tabular">{metrics?.r2}</div>
-          <span className="text-[11px] text-ink-400 mt-0.5 block">High variance explanation</span>
-        </div>
-
-        <div className="bg-card border border-line rounded-lg p-4">
-          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Error Reduction</span>
-          <div className="font-serif text-2xl font-bold text-warm-700 mt-1 font-tabular">+{metrics?.improvement_percent}%</div>
-          <span className="text-[11px] text-ink-400 mt-0.5 block">Over mean baseline dummy</span>
-        </div>
-      </div>
-
-      {/* Benchmark Evaluation Table */}
-      <div className="border border-line rounded-lg overflow-hidden bg-card space-y-3 p-5">
-        <div className="pb-3 border-b border-line">
-          <h3 className="font-serif text-sm font-bold text-ink-950">
-            Model Benchmark (Random Forest vs Mean Baseline Dummy)
+        {/* Feature Importance Chart */}
+        <div className="bg-white border border-gray-200 rounded-md p-4 space-y-3">
+          <h3 className="font-semibold text-sm text-gray-800 border-b border-gray-100 pb-2">
+            Feature Importance Weightings (%)
           </h3>
-          <p className="text-xs text-ink-500">
-            Evaluated on strictly chronologically unseen holdout test observations
-          </p>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-canvas-subtle border-b border-line text-ink-600 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th className="px-4 py-3">Evaluation Metric</th>
-                <th className="px-4 py-3">Baseline Model (Mean Strategy)</th>
-                <th className="px-4 py-3">FoodWise Random Forest</th>
-                <th className="px-4 py-3 text-right">Relative Accuracy Gain</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line text-ink-700">
-              <tr>
-                <td className="px-4 py-3 font-semibold text-ink-950">Mean Absolute Error (MAE)</td>
-                <td className="px-4 py-3 font-mono text-ink-500 font-tabular">{metrics?.baseline_mae} portions</td>
-                <td className="px-4 py-3 font-mono font-bold text-olive-800 font-tabular">{metrics?.mae} portions</td>
-                <td className="px-4 py-3 font-mono font-bold text-olive-800 text-right font-tabular">
-                  -{metrics?.improvement_percent}% error reduction
-                </td>
-              </tr>
-              <tr>
-                <td className="px-4 py-3 font-semibold text-ink-950">Root Mean Squared Error (RMSE)</td>
-                <td className="px-4 py-3 font-mono text-ink-500 font-tabular">{metrics?.baseline_rmse} portions</td>
-                <td className="px-4 py-3 font-mono font-bold text-olive-800 font-tabular">{metrics?.rmse} portions</td>
-                <td className="px-4 py-3 text-ink-600 text-right">Substantially lower peak error</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-3 font-semibold text-ink-950">Coefficient of Determination (R²)</td>
-                <td className="px-4 py-3 font-mono text-ink-500 font-tabular">{metrics?.baseline_r2}</td>
-                <td className="px-4 py-3 font-mono font-bold text-olive-800 font-tabular">{metrics?.r2}</td>
-                <td className="px-4 py-3 text-ink-600 text-right">Strong predictive variance coverage</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Feature Importances Chart */}
-      <div className="border border-line rounded-lg p-5 bg-card space-y-4">
-        <div className="pb-3 border-b border-line">
-          <h3 className="font-serif text-sm font-bold text-ink-950">
-            Feature Importance Weightings
-          </h3>
-          <p className="text-xs text-ink-500">
-            Relative contribution of each feature to Random Forest decision splits
-          </p>
-        </div>
-
-        <div className="h-60 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={featureChartData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" vertical={false} />
-              <XAxis dataKey="feature" stroke="#77807A" fontSize={10} tickLine={false} angle={-20} textAnchor="end" />
-              <YAxis stroke="#77807A" fontSize={10} tickLine={false} unit="%" />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
-                formatter={(val: any) => [`${val}%`, 'Relative Weight']}
-              />
-              <Bar dataKey="importance" fill="#314F3B" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Holdout Residual Inspection Table */}
-      <div className="border border-line rounded-lg p-5 bg-card space-y-3">
-        <div className="pb-3 border-b border-line">
-          <h3 className="font-serif text-sm font-bold text-ink-950">
-            Holdout Test Observations & Residual Errors
-          </h3>
-          <p className="text-xs text-ink-500">
-            Sample test set comparison between actual recorded sales and model forecasts
-          </p>
-        </div>
-
-        <div className="overflow-x-auto max-h-64">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-canvas-subtle border-b border-line text-ink-600 font-semibold uppercase tracking-wider text-[11px] sticky top-0">
-              <tr>
-                <th className="px-4 py-2.5">Date</th>
-                <th className="px-4 py-2.5">Menu</th>
-                <th className="px-4 py-2.5 text-right">Actual Sold</th>
-                <th className="px-4 py-2.5 text-right">Model Forecast</th>
-                <th className="px-4 py-2.5 text-right">Residual Error</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line text-ink-700">
-              {metrics?.sample_test_predictions.slice(0, 20).map((p, i) => (
-                <tr key={i} className="hover:bg-canvas-subtle/70">
-                  <td className="px-4 py-2 font-mono text-ink-900">{p.date}</td>
-                  <td className="px-4 py-2 font-semibold text-ink-950">{p.menu_type}</td>
-                  <td className="px-4 py-2 font-mono text-right font-tabular">{p.actual}</td>
-                  <td className="px-4 py-2 font-mono text-right font-bold text-olive-800 font-tabular">{p.predicted}</td>
-                  <td className="px-4 py-2 font-mono text-right font-tabular">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                      Math.abs(p.error) <= 10 ? 'text-olive-800 bg-olive-50' : 'text-ink-600'
-                    }`}>
-                      {p.error > 0 ? `+${p.error}` : p.error}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={featureChartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis dataKey="feature" stroke="#64748b" fontSize={10} tickLine={false} angle={-20} textAnchor="end" />
+                <YAxis stroke="#64748b" fontSize={10} tickLine={false} unit="%" />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '4px', fontSize: '11px' }} />
+                <Bar dataKey="importance" fill="#3b82f6" radius={[2, 2, 0, 0]} name="Weight" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

@@ -2,40 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-}
-
 body {
   margin: 0;
-  background-color: #FBFBF9;
-  color: #1F2421;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Editorial subtle scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #F4F4EE;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D8D8CF;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #B8B8AE;
-}
-
-/* Crisp tabular numerals for figures and costs */
-.font-tabular {
-  font-variant-numeric: tabular-nums;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: 'Inter', Arial, sans-serif;
 }

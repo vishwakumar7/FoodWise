@@ -1,121 +1,71 @@
 import React from 'react';
-import { NavTab } from './Sidebar';
-import { RefreshCw, Database } from 'lucide-react';
+
+export type NavTab = 'dashboard' | 'predict' | 'scenarios' | 'analytics' | 'waste' | 'model';
 
 interface NavbarProps {
   currentTab: NavTab;
+  onSelectTab: (tab: NavTab) => void;
   backendOnline: boolean;
-  onRefresh?: () => void;
-  refreshing?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
+  onSelectTab,
   backendOnline,
-  onRefresh,
-  refreshing = false,
 }) => {
-  const getTabMetadata = (tab: NavTab) => {
-    switch (tab) {
-      case 'dashboard':
-        return {
-          category: 'Kitchen Production',
-          title: 'Daily Operations Overview',
-          description: 'Consolidated demand predictions, kitchen batch schedules, and variance monitoring.',
-        };
-      case 'predict':
-        return {
-          category: 'Forecasting Engine',
-          title: 'Meal Demand Forecasting',
-          description: 'Single-shift demand projection with Random Forest decision tree variance bounds.',
-        };
-      case 'scenarios':
-        return {
-          category: 'Production Planning',
-          title: 'Batch Size Strategy Simulator',
-          description: 'Evaluate conservative, forecast-matched, and safety-buffer preparation targets.',
-        };
-      case 'lab':
-        return {
-          category: 'Model Analysis',
-          title: 'Parameter Sensitivity Analysis',
-          description: 'Measure demand shifts under alternate attendance, temperature, and schedule inputs.',
-        };
-      case 'analytics':
-        return {
-          category: 'Historical Data',
-          title: 'Consumption & Sales Records',
-          description: 'Multi-item volume patterns, day-of-week demand cycles, and test accuracy curves.',
-        };
-      case 'waste':
-        return {
-          category: 'Shift Logs',
-          title: 'Food Waste & Salvage Log',
-          description: 'Operational records separating safely reused leftovers from discarded portions.',
-        };
-      case 'model':
-        return {
-          category: 'Pipeline Diagnostics',
-          title: 'Model Evaluation & Retraining',
-          description: 'Validation metrics (MAE, RMSE, R²), baseline benchmarks, and feature weights.',
-        };
-    }
-  };
-
-  const { category, title, description } = getTabMetadata(currentTab);
+  const tabs = [
+    { id: 'dashboard' as NavTab, label: 'Dashboard' },
+    { id: 'predict' as NavTab, label: 'Predict Demand' },
+    { id: 'scenarios' as NavTab, label: 'What-If Scenarios' },
+    { id: 'analytics' as NavTab, label: 'Analytics' },
+    { id: 'waste' as NavTab, label: 'Waste Tracking' },
+    { id: 'model' as NavTab, label: 'Model Performance' },
+  ];
 
   return (
-    <header className="bg-card border-b border-line px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
-      <div>
-        <div className="flex items-center gap-2 text-[11px] font-medium text-ink-500 uppercase tracking-wider">
-          <span>{category}</span>
-          <span className="text-ink-300">•</span>
-          <span className="text-olive-700 font-semibold">Central Facility</span>
-        </div>
-        <h1 className="text-xl font-serif font-bold text-ink-900 tracking-tight mt-0.5">
-          {title}
-        </h1>
-        <p className="text-xs text-ink-500 mt-0.5">
-          {description}
-        </p>
-      </div>
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo / Title */}
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-xl text-blue-600 tracking-tight">FoodWise AI</span>
+            <span className="text-xs text-gray-500 hidden sm:inline-block border-l border-gray-300 pl-3">
+              Canteen Demand Forecasting Project
+            </span>
+          </div>
 
-      <div className="flex items-center gap-3 shrink-0">
-        {/* Dataset reference */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded border border-line bg-canvas-subtle text-[11px] text-ink-600 font-mono">
-          <Database className="w-3.5 h-3.5 text-ink-400" />
-          <span>Demo Data: 1,825 Shifts</span>
-        </div>
-
-        {/* Backend health status */}
-        <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border ${
-            backendOnline
-              ? 'bg-olive-50 text-olive-800 border-olive-200'
-              : 'bg-terracotta-50 text-terracotta-800 border-terracotta-200'
-          }`}
-        >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              backendOnline ? 'bg-olive-600' : 'bg-terracotta-600'
-            }`}
-          />
-          <span className="text-[11px]">
-            {backendOnline ? 'API Connected' : 'Backend Offline'}
-          </span>
+          {/* Status Indicator */}
+          <div className="flex items-center gap-2 text-xs">
+            <span
+              className={`inline-block w-2 h-2 rounded-full ${
+                backendOnline ? 'bg-green-500' : 'bg-red-500'
+              }`}
+            />
+            <span className="text-gray-600">
+              {backendOnline ? 'Backend Online' : 'Backend Disconnected'}
+            </span>
+          </div>
         </div>
 
-        {/* Refresh button */}
-        {onRefresh && (
-          <button
-            onClick={onRefresh}
-            disabled={refreshing}
-            className="p-1.5 rounded border border-line bg-card text-ink-600 hover:text-ink-900 hover:bg-canvas-subtle transition-colors disabled:opacity-50"
-            title="Refresh active view"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-olive-700' : ''}`} />
-          </button>
-        )}
+        {/* Navigation Tabs */}
+        <nav className="flex space-x-6 overflow-x-auto border-t border-gray-100 text-sm">
+          {tabs.map((tab) => {
+            const isActive = currentTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onSelectTab(tab.id)}
+                className={`py-3 px-1 border-b-2 font-medium whitespace-nowrap transition-colors ${
+                  isActive
+                    ? 'border-blue-600 text-blue-600 font-semibold'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </header>
   );
