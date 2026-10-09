@@ -1,32 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import {
-  FlaskConical,
-  ArrowRight,
+  ArrowLeftRight,
+  RefreshCw,
+  Info,
   TrendingUp,
   TrendingDown,
-  Info,
-  Sparkles,
-  Users,
-  ChefHat,
-  Thermometer,
-  Palmtree,
-  RefreshCw,
-  Sliders
+  Equal
 } from 'lucide-react';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend
+} from 'recharts';
 import { api } from '../services/api';
 import { PredictResponse } from '../types';
 
 const MENU_TYPES = ['Meals', 'Variety Rice', 'Biryani', 'Dosa', 'Idli'];
 
 export const PredictionLabPage: React.FC = () => {
-  // Scenario A (Baseline)
+  // Scenario A (Control)
   const [menuA, setMenuA] = useState<string>('Meals');
   const [attendanceA, setAttendanceA] = useState<number>(350);
   const [tempA, setTempA] = useState<number>(28);
   const [holidayA, setHolidayA] = useState<number>(0);
 
-  // Scenario B (Experimental Variant)
+  // Scenario B (Experimental)
   const [menuB, setMenuB] = useState<string>('Biryani');
   const [attendanceB, setAttendanceB] = useState<number>(450);
   const [tempB, setTempB] = useState<number>(28);
@@ -35,8 +38,6 @@ export const PredictionLabPage: React.FC = () => {
   const [predA, setPredA] = useState<PredictResponse | null>(null);
   const [predB, setPredB] = useState<PredictResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Attendance Sensitivity curve simulation
   const [sensitivityCurve, setSensitivityCurve] = useState<any[]>([]);
 
   const runComparison = async () => {
@@ -67,7 +68,6 @@ export const PredictionLabPage: React.FC = () => {
       setPredA(resA);
       setPredB(resB);
 
-      // Generate sensitivity data points for attendance range [100, 200, 300, 400, 500, 600]
       const attendanceSteps = [100, 200, 300, 400, 500, 600];
       const curveData = await Promise.all(
         attendanceSteps.map(async (att) => {
@@ -116,54 +116,59 @@ export const PredictionLabPage: React.FC = () => {
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <FlaskConical className="w-6 h-6 text-amber-500" />
-            Prediction Sensitivity Lab
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Isolate and manipulate individual variables to observe machine learning model sensitivity and responsiveness.
-          </p>
-        </div>
-
-        <button
-          onClick={runComparison}
-          disabled={loading}
-          className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Recalculate Sensitivity
-        </button>
-      </div>
-
-      {/* Causality Disclaimer */}
-      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-3">
-        <Info className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" />
-        <div>
-          <strong className="font-semibold block text-amber-200">Scientific Context & Model Limitation:</strong>
-          These deltas reflect model-learned correlations from the training distribution, not empirical proof that changing a single variable causes real-world customer shifts. Real operational outcomes also depend on off-campus dining alternatives and schedule changes.
-        </div>
-      </div>
-
-      {/* Comparison Grid: Baseline vs Experiment */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Scenario A (Baseline) - 5 cols */}
-        <div className="lg:col-span-5 bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <span className="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-sky-400" /> Scenario A (Baseline)
-            </span>
-            <span className="text-xs text-slate-400">Control Group</span>
+      <div className="border-b border-line pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-500">
+              <span>Model Sensitivity</span>
+              <span>•</span>
+              <span className="text-olive-700">Comparative Variable Inspection</span>
+            </div>
+            <h2 className="font-serif text-2xl lg:text-3xl font-bold text-ink-950 tracking-tight mt-1">
+              Parameter Sensitivity Analysis
+            </h2>
+            <p className="text-xs text-ink-500 mt-1 max-w-2xl">
+              Isolate and modify operational variables to evaluate how expected portion demand reacts across menus and attendance tiers.
+            </p>
           </div>
 
-          <div className="space-y-4">
+          <button
+            onClick={runComparison}
+            disabled={loading}
+            className="px-4 py-2 rounded text-xs font-semibold bg-olive-700 hover:bg-olive-800 text-white flex items-center gap-2 transition-colors disabled:opacity-50 shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Recalculate Sensitivity
+          </button>
+        </div>
+      </div>
+
+      {/* Scientific Context Disclaimer */}
+      <div className="p-4 rounded-lg bg-card border border-line flex items-start gap-3">
+        <Info className="w-4 h-4 text-olive-700 shrink-0 mt-0.5" />
+        <div className="text-xs text-ink-600 leading-relaxed">
+          <strong className="text-ink-900 font-semibold">Methodological Note:</strong> These deltas reflect statistical relationships captured by the Random Forest model across historical observations. They represent modeled sensitivity rather than definitive proof of causal real-world behavioral changes.
+        </div>
+      </div>
+
+      {/* Comparative Matrix: Scenario A vs Delta vs Scenario B */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Scenario A (Baseline Control) */}
+        <div className="lg:col-span-5 bg-card border border-line rounded-lg p-5 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-line">
+            <span className="text-xs font-semibold uppercase tracking-wider text-ink-800">
+              Shift Configuration A (Control)
+            </span>
+            <span className="text-[10px] font-mono text-ink-400">Baseline</span>
+          </div>
+
+          <div className="space-y-3 text-xs">
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">Menu Category</label>
+              <label className="text-ink-700 font-medium block mb-1">Menu Category</label>
               <select
                 value={menuA}
                 onChange={(e) => setMenuA(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-semibold focus:outline-none focus:border-olive-700"
               >
                 {MENU_TYPES.map((m) => (
                   <option key={m} value={m}>{m}</option>
@@ -172,9 +177,9 @@ export const PredictionLabPage: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
+              <div className="flex justify-between text-ink-700 mb-1">
                 <span>Expected Attendance</span>
-                <span className="font-mono font-bold text-sky-400">{attendanceA}</span>
+                <span className="font-mono font-bold text-ink-950 font-tabular">{attendanceA} students</span>
               </div>
               <input
                 type="range"
@@ -182,14 +187,14 @@ export const PredictionLabPage: React.FC = () => {
                 max="650"
                 value={attendanceA}
                 onChange={(e) => setAttendanceA(parseInt(e.target.value))}
-                className="w-full accent-sky-500 bg-slate-800 rounded-lg h-2"
+                className="w-full accent-olive-700 bg-canvas-subtle rounded h-1.5"
               />
             </div>
 
             <div>
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
-                <span>Temperature</span>
-                <span className="font-mono font-bold text-slate-300">{tempA}°C</span>
+              <div className="flex justify-between text-ink-700 mb-1">
+                <span>Forecasted Temperature</span>
+                <span className="font-mono font-bold text-ink-950 font-tabular">{tempA}°C</span>
               </div>
               <input
                 type="range"
@@ -197,70 +202,86 @@ export const PredictionLabPage: React.FC = () => {
                 max="42"
                 value={tempA}
                 onChange={(e) => setTempA(parseFloat(e.target.value))}
-                className="w-full accent-slate-500 bg-slate-800 rounded-lg h-2"
+                className="w-full accent-ink-700 bg-canvas-subtle rounded h-1.5"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-300">Holiday Status</span>
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-ink-700 font-medium">Schedule Setting</span>
               <button
                 type="button"
                 onClick={() => setHolidayA(holidayA === 1 ? 0 : 1)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
-                  holidayA === 1 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-slate-900 text-slate-400 border-slate-700'
+                className={`px-2.5 py-1 rounded text-xs border font-medium ${
+                  holidayA === 1 ? 'bg-olive-50 text-olive-800 border-olive-200' : 'bg-canvas-subtle text-ink-600 border-line'
                 }`}
               >
-                {holidayA === 1 ? 'Holiday / Break' : 'Normal Weekday'}
+                {holidayA === 1 ? 'Holiday / Break' : 'Regular Schedule'}
               </button>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-            <span className="text-[11px] text-slate-400 uppercase font-semibold block">Predicted Demand A</span>
-            <span className="text-3xl font-extrabold text-sky-400 mt-1 block">
-              {predA ? `${predA.rounded_prediction} meals` : '...'}
+          <div className="p-3.5 rounded bg-canvas-subtle border border-line text-center">
+            <span className="text-[11px] text-ink-500 uppercase font-semibold block">Forecast A</span>
+            <span className="font-serif text-3xl font-bold text-ink-950 mt-0.5 block font-tabular">
+              {predA ? `${predA.rounded_prediction} portions` : '...'}
             </span>
           </div>
         </div>
 
-        {/* Delta Callout (2 cols) */}
-        <div className="lg:col-span-2 flex flex-col items-center justify-center bg-[#111827] border border-slate-800 rounded-2xl p-5 text-center space-y-3">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Model Delta</span>
-          
-          <div className={`p-3 rounded-full ${deltaMeals >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-            {deltaMeals >= 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
+        {/* Delta Summary (2 cols) */}
+        <div className="lg:col-span-2 flex flex-col items-center justify-center bg-card border border-line rounded-lg p-4 text-center space-y-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+            Model Variance
+          </span>
+
+          <div className={`p-2 rounded-full border ${
+            deltaMeals > 0
+              ? 'bg-olive-50 text-olive-800 border-olive-200'
+              : deltaMeals < 0
+              ? 'bg-terracotta-50 text-terracotta-800 border-terracotta-200'
+              : 'bg-canvas-subtle text-ink-600 border-line'
+          }`}>
+            {deltaMeals > 0 ? (
+              <TrendingUp className="w-5 h-5" />
+            ) : deltaMeals < 0 ? (
+              <TrendingDown className="w-5 h-5" />
+            ) : (
+              <Equal className="w-5 h-5" />
+            )}
           </div>
 
-          <div className="space-y-0.5">
-            <span className={`text-2xl font-black block ${deltaMeals >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {deltaMeals > 0 ? `+${deltaMeals}` : deltaMeals} meals
+          <div>
+            <span className={`font-serif text-2xl font-bold block font-tabular ${
+              deltaMeals > 0 ? 'text-olive-800' : deltaMeals < 0 ? 'text-terracotta-800' : 'text-ink-800'
+            }`}>
+              {deltaMeals > 0 ? `+${deltaMeals}` : deltaMeals}
             </span>
-            <span className="text-xs text-slate-400 font-mono">
+            <span className="text-[11px] text-ink-500 font-mono">
               ({pctChange > '0' ? `+${pctChange}` : pctChange}%)
             </span>
           </div>
 
-          <span className="text-[10px] text-slate-500 leading-tight">
-            Sensitivity difference between Variant B & A
-          </span>
+          <p className="text-[10px] text-ink-400 leading-tight">
+            Net demand delta between Shift B and Shift A
+          </p>
         </div>
 
-        {/* Scenario B (Experimental Variant) - 5 cols */}
-        <div className="lg:col-span-5 bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400" /> Scenario B (Variant)
+        {/* Scenario B (Variant Group) */}
+        <div className="lg:col-span-5 bg-card border border-line rounded-lg p-5 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-line">
+            <span className="text-xs font-semibold uppercase tracking-wider text-ink-800">
+              Shift Configuration B (Variant)
             </span>
-            <span className="text-xs text-slate-400">Experimental</span>
+            <span className="text-[10px] font-mono text-ink-400">Experimental</span>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 text-xs">
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">Menu Category</label>
+              <label className="text-ink-700 font-medium block mb-1">Menu Category</label>
               <select
                 value={menuB}
                 onChange={(e) => setMenuB(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-semibold focus:outline-none focus:border-olive-700"
               >
                 {MENU_TYPES.map((m) => (
                   <option key={m} value={m}>{m}</option>
@@ -269,9 +290,9 @@ export const PredictionLabPage: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
+              <div className="flex justify-between text-ink-700 mb-1">
                 <span>Expected Attendance</span>
-                <span className="font-mono font-bold text-amber-400">{attendanceB}</span>
+                <span className="font-mono font-bold text-ink-950 font-tabular">{attendanceB} students</span>
               </div>
               <input
                 type="range"
@@ -279,14 +300,14 @@ export const PredictionLabPage: React.FC = () => {
                 max="650"
                 value={attendanceB}
                 onChange={(e) => setAttendanceB(parseInt(e.target.value))}
-                className="w-full accent-amber-500 bg-slate-800 rounded-lg h-2"
+                className="w-full accent-terracotta-700 bg-canvas-subtle rounded h-1.5"
               />
             </div>
 
             <div>
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
-                <span>Temperature</span>
-                <span className="font-mono font-bold text-slate-300">{tempB}°C</span>
+              <div className="flex justify-between text-ink-700 mb-1">
+                <span>Forecasted Temperature</span>
+                <span className="font-mono font-bold text-ink-950 font-tabular">{tempB}°C</span>
               </div>
               <input
                 type="range"
@@ -294,59 +315,56 @@ export const PredictionLabPage: React.FC = () => {
                 max="42"
                 value={tempB}
                 onChange={(e) => setTempB(parseFloat(e.target.value))}
-                className="w-full accent-slate-500 bg-slate-800 rounded-lg h-2"
+                className="w-full accent-ink-700 bg-canvas-subtle rounded h-1.5"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-300">Holiday Status</span>
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-ink-700 font-medium">Schedule Setting</span>
               <button
                 type="button"
                 onClick={() => setHolidayB(holidayB === 1 ? 0 : 1)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
-                  holidayB === 1 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-slate-900 text-slate-400 border-slate-700'
+                className={`px-2.5 py-1 rounded text-xs border font-medium ${
+                  holidayB === 1 ? 'bg-olive-50 text-olive-800 border-olive-200' : 'bg-canvas-subtle text-ink-600 border-line'
                 }`}
               >
-                {holidayB === 1 ? 'Holiday / Break' : 'Normal Weekday'}
+                {holidayB === 1 ? 'Holiday / Break' : 'Regular Schedule'}
               </button>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-            <span className="text-[11px] text-slate-400 uppercase font-semibold block">Predicted Demand B</span>
-            <span className="text-3xl font-extrabold text-amber-400 mt-1 block">
-              {predB ? `${predB.rounded_prediction} meals` : '...'}
+          <div className="p-3.5 rounded bg-canvas-subtle border border-line text-center">
+            <span className="text-[11px] text-ink-500 uppercase font-semibold block">Forecast B</span>
+            <span className="font-serif text-3xl font-bold text-ink-950 mt-0.5 block font-tabular">
+              {predB ? `${predB.rounded_prediction} portions` : '...'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Dynamic Attendance Sensitivity Curve Chart */}
-      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 lg:p-7 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-amber-500" />
-              Attendance Response Curve
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Simulated demand trajectory as campus attendance increases from 100 to 600 students
-            </p>
-          </div>
+      {/* Attendance Response Trajectory Curve */}
+      <div className="border border-line rounded-lg p-5 bg-card space-y-4">
+        <div className="pb-3 border-b border-line">
+          <h3 className="font-serif text-sm font-bold text-ink-950">
+            Attendance Demand Scaling Trajectory
+          </h3>
+          <p className="text-xs text-ink-500">
+            Model-projected portion demand as campus headcount scales from 100 to 600 attendees
+          </p>
         </div>
 
-        <div className="h-72 w-full">
+        <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sensitivityCurve} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-              <XAxis dataKey="attendance" stroke="#64748B" fontSize={12} tickLine={false} label={{ value: 'Campus Attendance', position: 'insideBottom', offset: -5, fill: '#64748B', fontSize: 11 }} />
-              <YAxis stroke="#64748B" fontSize={12} tickLine={false} label={{ value: 'Predicted Demand', angle: -90, position: 'insideLeft', fill: '#64748B', fontSize: 11 }} />
+            <LineChart data={sensitivityCurve} margin={{ top: 15, right: 20, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" vertical={false} />
+              <XAxis dataKey="attendance" stroke="#77807A" fontSize={11} tickLine={false} />
+              <YAxis stroke="#77807A" fontSize={10} tickLine={false} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
+                contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
               />
-              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '15px' }} />
-              <Line type="monotone" dataKey={menuA} stroke="#38BDF8" strokeWidth={3} dot={{ r: 4 }} name={`Scenario A: ${menuA}`} />
-              <Line type="monotone" dataKey={menuB} stroke="#F59E0B" strokeWidth={3} dot={{ r: 4 }} name={`Scenario B: ${menuB}`} />
+              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+              <Line type="monotone" dataKey={menuA} stroke="#314F3B" strokeWidth={2} dot={{ r: 3 }} name={`Config A: ${menuA}`} />
+              <Line type="monotone" dataKey={menuB} stroke="#C85435" strokeWidth={2} strokeDasharray="3 3" dot={{ r: 3 }} name={`Config B: ${menuB}`} />
             </LineChart>
           </ResponsiveContainer>
         </div>

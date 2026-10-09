@@ -2,13 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart3,
   Calendar,
-  ChefHat,
   Filter,
-  Layers,
-  Sparkles,
   TrendingUp,
-  Users,
-  Search,
   Table as TableIcon
 } from 'lucide-react';
 import {
@@ -21,7 +16,6 @@ import {
   Scatter,
   XAxis,
   YAxis,
-  ZAxis,
   Tooltip,
   CartesianGrid,
   Legend
@@ -75,52 +69,58 @@ export const AnalyticsPage: React.FC = () => {
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-amber-500" />
-            Historical Demand Analytics
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Analyze historical canteen consumption trends, weekday cycles, and model fit accuracy.
-          </p>
-        </div>
+      <div className="border-b border-line pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-500">
+              <span>Historical Reporting</span>
+              <span>•</span>
+              <span className="text-olive-700">Multi-Term Consumption Trends</span>
+            </div>
+            <h2 className="font-serif text-2xl lg:text-3xl font-bold text-ink-950 tracking-tight mt-1">
+              Consumption & Demand Analytics
+            </h2>
+            <p className="text-xs text-ink-500 mt-1 max-w-2xl">
+              Inspect historical sales trends, day-of-week consumption distributions, and test set accuracy curves.
+            </p>
+          </div>
 
-        {/* View Toggle */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl">
-          <button
-            onClick={() => setActiveView('charts')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeView === 'charts'
-                ? 'bg-amber-500 text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Visual Analytics
-          </button>
-          <button
-            onClick={() => setActiveView('table')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeView === 'table'
-                ? 'bg-amber-500 text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Data Records ({historyRecords.length})
-          </button>
+          {/* View Toggle */}
+          <div className="flex items-center border border-line bg-card rounded p-0.5 text-xs font-medium">
+            <button
+              onClick={() => setActiveView('charts')}
+              className={`px-3 py-1.5 rounded transition-colors ${
+                activeView === 'charts'
+                  ? 'bg-olive-700 text-white font-semibold'
+                  : 'text-ink-600 hover:text-ink-900'
+              }`}
+            >
+              Visual Charts
+            </button>
+            <button
+              onClick={() => setActiveView('table')}
+              className={`px-3 py-1.5 rounded transition-colors ${
+                activeView === 'table'
+                  ? 'bg-olive-700 text-white font-semibold'
+                  : 'text-ink-600 hover:text-ink-900'
+              }`}
+            >
+              Log Records ({historyRecords.length})
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      {/* Filter Toolbar */}
+      <div className="p-4 rounded-lg bg-card border border-line flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-amber-400" />
-            <span className="text-xs font-semibold text-slate-300">Menu:</span>
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-ink-400" />
+            <span className="text-ink-600 font-medium">Menu Filter:</span>
             <select
               value={selectedMenu}
               onChange={(e) => setSelectedMenu(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="bg-canvas-subtle border border-line rounded px-2.5 py-1 text-ink-900 font-semibold focus:outline-none focus:border-olive-700"
             >
               {MENU_TYPES.map((m) => (
                 <option key={m} value={m}>{m}</option>
@@ -128,12 +128,12 @@ export const AnalyticsPage: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-300">Weekday:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-ink-600 font-medium">Weekday:</span>
             <select
               value={selectedDay}
               onChange={(e) => setSelectedDay(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="bg-canvas-subtle border border-line rounded px-2.5 py-1 text-ink-900 font-semibold focus:outline-none focus:border-olive-700"
             >
               {WEEKDAYS.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -141,104 +141,119 @@ export const AnalyticsPage: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-semibold text-slate-300">From:</span>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-ink-400" />
+            <span className="text-ink-600 font-medium">Range:</span>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="bg-canvas-subtle border border-line rounded px-2 py-1 text-ink-900 focus:outline-none focus:border-olive-700 text-xs"
             />
-            <span className="text-xs text-slate-400">To:</span>
+            <span className="text-ink-400">to</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="bg-canvas-subtle border border-line rounded px-2 py-1 text-ink-900 focus:outline-none focus:border-olive-700 text-xs"
             />
           </div>
         </div>
 
-        <span className="text-xs text-slate-400 font-mono">
-          Showing filtered data from 1,825 historical rows
+        <span className="text-ink-500 font-mono text-[11px]">
+          1,825 shift records in database
         </span>
       </div>
 
       {activeView === 'charts' ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Chart 1: Daily Demand Trend */}
-          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-amber-500" />
-                  Recent Daily Demand Trend (Multi-Item Volume)
-                </h3>
-                <p className="text-xs text-slate-400">Chronological daily consumption across menu offerings</p>
-              </div>
+          <div className="border border-line rounded-lg p-5 bg-card space-y-3">
+            <div className="pb-3 border-b border-line">
+              <h3 className="font-serif text-sm font-bold text-ink-950">
+                Daily Demand Trajectory (Multi-Item Volume)
+              </h3>
+              <p className="text-xs text-ink-500">
+                Chronological portion sales across active menu categories
+              </p>
             </div>
 
-            <div className="h-72 w-full">
+            <div className="h-64 w-full">
               {chartsData?.analytics?.daily_trend ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartsData.analytics.daily_trend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                    <XAxis dataKey="date" stroke="#64748B" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
+                  <LineChart data={chartsData.analytics.daily_trend} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" vertical={false} />
+                    <XAxis dataKey="date" stroke="#77807A" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#77807A" fontSize={10} tickLine={false} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
+                      contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
                     />
                     <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                    <Line type="monotone" dataKey="Meals" stroke="#F59E0B" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Biryani" stroke="#EC4899" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Variety Rice" stroke="#10B981" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Dosa" stroke="#38BDF8" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Idli" stroke="#A855F7" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Meals" stroke="#314F3B" strokeWidth={1.8} dot={false} />
+                    <Line type="monotone" dataKey="Biryani" stroke="#AF4326" strokeWidth={1.8} dot={false} />
+                    <Line type="monotone" dataKey="Variety Rice" stroke="#8A6217" strokeWidth={1.8} dot={false} />
+                    <Line type="monotone" dataKey="Dosa" stroke="#434A45" strokeWidth={1.8} dot={false} />
+                    <Line type="monotone" dataKey="Idli" stroke="#77807A" strokeWidth={1.8} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex items-center justify-center text-slate-500 text-xs">Loading chart...</div>
+                <div className="h-full flex items-center justify-center text-xs text-ink-400">Loading daily trends...</div>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Chart 2: Weekday Demand */}
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white">Average Demand by Weekday</h3>
+            {/* Chart 2: Weekday Volume Distribution */}
+            <div className="border border-line rounded-lg p-5 bg-card space-y-3">
+              <div className="pb-3 border-b border-line">
+                <h3 className="font-serif text-sm font-bold text-ink-950">
+                  Weekday Consumption Distribution
+                </h3>
+                <p className="text-xs text-ink-500">
+                  Average portion sales volume by day of the week
+                </p>
+              </div>
+
               <div className="h-64 w-full">
                 {chartsData?.analytics?.weekday_demand ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartsData.analytics.weekday_demand}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                      <XAxis dataKey="day" stroke="#64748B" fontSize={12} tickLine={false} />
-                      <YAxis stroke="#64748B" fontSize={12} tickLine={false} />
+                    <BarChart data={chartsData.analytics.weekday_demand} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" vertical={false} />
+                      <XAxis dataKey="day" stroke="#77807A" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#77807A" fontSize={10} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
                       />
-                      <Bar dataKey="avg_meals" fill="#3B82F6" radius={[6, 6, 0, 0]} name="Average Meals" />
+                      <Bar dataKey="avg_meals" fill="#314F3B" radius={[2, 2, 0, 0]} name="Average Demand" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : null}
               </div>
             </div>
 
-            {/* Chart 3: Attendance vs Meals Sold Scatter */}
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white">Attendance vs Meals Sold Correlation</h3>
+            {/* Chart 3: Headcount vs Demand Scatter */}
+            <div className="border border-line rounded-lg p-5 bg-card space-y-3">
+              <div className="pb-3 border-b border-line">
+                <h3 className="font-serif text-sm font-bold text-ink-950">
+                  Headcount vs Portion Demand Correlation
+                </h3>
+                <p className="text-xs text-ink-500">
+                  Turnout sensitivity across campus operating shifts
+                </p>
+              </div>
+
               <div className="h-64 w-full">
                 {chartsData?.analytics?.attendance_vs_sales ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                      <XAxis type="number" dataKey="attendance" name="Attendance" stroke="#64748B" fontSize={11} tickLine={false} />
-                      <YAxis type="number" dataKey="meals_sold" name="Meals Sold" stroke="#64748B" fontSize={11} tickLine={false} />
+                    <ScatterChart margin={{ top: 10, right: 20, bottom: 0, left: -10 }}>
+                      <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" />
+                      <XAxis type="number" dataKey="attendance" name="Attendance" stroke="#77807A" fontSize={10} tickLine={false} />
+                      <YAxis type="number" dataKey="meals_sold" name="Portions Sold" stroke="#77807A" fontSize={10} tickLine={false} />
                       <Tooltip
-                        cursor={{ strokeDasharray: '3 3' }}
-                        contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
+                        cursor={{ strokeDasharray: '2 2' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
                       />
-                      <Scatter name="Canteen Orders" data={chartsData.analytics.attendance_vs_sales} fill="#F59E0B" fillOpacity={0.7} />
+                      <Scatter name="Service Shifts" data={chartsData.analytics.attendance_vs_sales} fill="#AF4326" fillOpacity={0.65} />
                     </ScatterChart>
                   </ResponsiveContainer>
                 ) : null}
@@ -246,33 +261,35 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Chart 4: Actual vs Predicted Demand Curve */}
+          {/* Chart 4: Model Accuracy Curve */}
           {modelMetrics?.sample_test_predictions && (
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="border border-line rounded-lg p-5 bg-card space-y-3">
+              <div className="pb-3 border-b border-line flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-400" />
-                    Model Accuracy: Actual vs Predicted Demand (Hold-out Test Sample)
+                  <h3 className="font-serif text-sm font-bold text-ink-950">
+                    Model Accuracy Fit on Holdout Observations
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    Temporal validation split (Test R² = {modelMetrics.r2}, MAE = {modelMetrics.mae} meals)
+                  <p className="text-xs text-ink-500">
+                    Comparing actual sales with Random Forest forecasts on chronological test records
                   </p>
                 </div>
+                <span className="text-xs font-mono text-ink-600 bg-canvas-subtle px-2 py-0.5 rounded border border-line">
+                  R² = {modelMetrics.r2} • MAE = {modelMetrics.mae} portions
+                </span>
               </div>
 
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={modelMetrics.sample_test_predictions.slice(0, 40)}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                    <XAxis dataKey="date" stroke="#64748B" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
+                  <LineChart data={modelMetrics.sample_test_predictions.slice(0, 40)} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" vertical={false} />
+                    <XAxis dataKey="date" stroke="#77807A" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#77807A" fontSize={10} tickLine={false} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
+                      contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
                     />
                     <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                    <Line type="monotone" dataKey="actual" stroke="#10B981" strokeWidth={2} dot={{ r: 2 }} name="Actual Meals Sold" />
-                    <Line type="monotone" dataKey="predicted" stroke="#F59E0B" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} name="Random Forest Prediction" />
+                    <Line type="monotone" dataKey="actual" stroke="#253E2E" strokeWidth={1.8} dot={{ r: 2 }} name="Actual Meals Sold" />
+                    <Line type="monotone" dataKey="predicted" stroke="#AF4326" strokeWidth={1.8} strokeDasharray="3 3" dot={{ r: 2 }} name="Model Forecast" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -280,37 +297,43 @@ export const AnalyticsPage: React.FC = () => {
           )}
         </div>
       ) : (
-        /* Table View */
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden">
+        /* Records Table View */
+        <div className="border border-line rounded-lg overflow-hidden bg-card">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900 text-slate-400 uppercase font-semibold border-b border-slate-800">
+              <thead className="bg-canvas-subtle border-b border-line text-ink-600 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Day</th>
-                  <th className="px-4 py-3">Menu Type</th>
-                  <th className="px-4 py-3">Attendance</th>
-                  <th className="px-4 py-3">Temp (°C)</th>
-                  <th className="px-4 py-3">Prev Sales</th>
-                  <th className="px-4 py-3">Schedule</th>
-                  <th className="px-4 py-3 text-right">Actual Sold</th>
+                  <th className="px-4 py-3">Shift Date</th>
+                  <th className="px-4 py-3">Weekday</th>
+                  <th className="px-4 py-3">Menu Offering</th>
+                  <th className="px-4 py-3 text-right">Headcount</th>
+                  <th className="px-4 py-3 text-right">Temp (°C)</th>
+                  <th className="px-4 py-3 text-right">Prev Sales</th>
+                  <th className="px-4 py-3 text-center">Schedule</th>
+                  <th className="px-4 py-3 text-right">Portions Sold</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-line text-ink-700">
                 {historyRecords.map((r, i) => (
-                  <tr key={i} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-4 py-2.5 font-mono">{r.date}</td>
+                  <tr key={i} className="hover:bg-canvas-subtle/70 transition-colors">
+                    <td className="px-4 py-2.5 font-mono text-ink-900">{r.date}</td>
                     <td className="px-4 py-2.5">{r.day_of_week}</td>
-                    <td className="px-4 py-2.5 font-semibold text-white">{r.menu_type}</td>
-                    <td className="px-4 py-2.5 font-mono">{r.expected_attendance}</td>
-                    <td className="px-4 py-2.5 font-mono">{r.temperature}°C</td>
-                    <td className="px-4 py-2.5 font-mono">{r.prev_day_sales}</td>
-                    <td className="px-4 py-2.5">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${r.is_holiday ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                    <td className="px-4 py-2.5 font-semibold text-ink-950">{r.menu_type}</td>
+                    <td className="px-4 py-2.5 font-mono text-right font-tabular">{r.expected_attendance}</td>
+                    <td className="px-4 py-2.5 font-mono text-right font-tabular">{r.temperature}°C</td>
+                    <td className="px-4 py-2.5 font-mono text-right font-tabular">{r.prev_day_sales}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
+                        r.is_holiday
+                          ? 'bg-olive-50 text-olive-800 border-olive-200'
+                          : 'bg-canvas-subtle text-ink-600 border-line'
+                      }`}>
                         {r.is_holiday ? 'Holiday' : 'Regular'}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 font-mono font-bold text-amber-400 text-right">{r.actual_meals_sold}</td>
+                    <td className="px-4 py-2.5 font-mono font-bold text-ink-950 text-right font-tabular">
+                      {r.actual_meals_sold}
+                    </td>
                   </tr>
                 ))}
               </tbody>

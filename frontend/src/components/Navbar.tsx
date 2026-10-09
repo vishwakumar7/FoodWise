@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavTab } from './Sidebar';
-import { Sparkles, AlertCircle, RefreshCw, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { RefreshCw, Database } from 'lucide-react';
 
 interface NavbarProps {
   currentTab: NavTab;
@@ -15,57 +15,94 @@ export const Navbar: React.FC<NavbarProps> = ({
   onRefresh,
   refreshing = false,
 }) => {
-  const getTabTitle = (tab: NavTab) => {
+  const getTabMetadata = (tab: NavTab) => {
     switch (tab) {
       case 'dashboard':
-        return { title: 'Executive Overview', subtitle: 'Real-time canteen demand forecasting & surplus monitoring' };
+        return {
+          category: 'Kitchen Production',
+          title: 'Daily Operations Overview',
+          description: 'Consolidated demand predictions, kitchen batch schedules, and variance monitoring.',
+        };
       case 'predict':
-        return { title: 'Interactive Demand Predictor', subtitle: 'Random Forest ML inference with tree-ensemble prediction bounds' };
+        return {
+          category: 'Forecasting Engine',
+          title: 'Meal Demand Forecasting',
+          description: 'Single-shift demand projection with Random Forest decision tree variance bounds.',
+        };
       case 'scenarios':
-        return { title: 'What-If Scenario Simulator', subtitle: 'Trade-off analysis between Conservative, Predicted, and Buffered preparation' };
+        return {
+          category: 'Production Planning',
+          title: 'Batch Size Strategy Simulator',
+          description: 'Evaluate conservative, forecast-matched, and safety-buffer preparation targets.',
+        };
       case 'lab':
-        return { title: 'Prediction Sensitivity Lab', subtitle: 'Interactive sensitivity exploration across attendance, menu & weather inputs' };
+        return {
+          category: 'Model Analysis',
+          title: 'Parameter Sensitivity Analysis',
+          description: 'Measure demand shifts under alternate attendance, temperature, and schedule inputs.',
+        };
       case 'analytics':
-        return { title: 'Historical Demand Analytics', subtitle: 'Explore multi-dimensional historical demand curves and consumption patterns' };
+        return {
+          category: 'Historical Data',
+          title: 'Consumption & Sales Records',
+          description: 'Multi-item volume patterns, day-of-week demand cycles, and test accuracy curves.',
+        };
       case 'waste':
-        return { title: 'Food Waste Operational Tracker', subtitle: 'Actual kitchen logs, unsold vs discarded meals, and financial loss metrics' };
+        return {
+          category: 'Shift Logs',
+          title: 'Food Waste & Salvage Log',
+          description: 'Operational records separating safely reused leftovers from discarded portions.',
+        };
       case 'model':
-        return { title: 'ML Model Performance & Pipeline', subtitle: 'Evaluation metrics (MAE, RMSE, R²), baseline benchmark & feature importances' };
+        return {
+          category: 'Pipeline Diagnostics',
+          title: 'Model Evaluation & Retraining',
+          description: 'Validation metrics (MAE, RMSE, R²), baseline benchmarks, and feature weights.',
+        };
     }
   };
 
-  const { title, subtitle } = getTabTitle(currentTab);
+  const { category, title, description } = getTabMetadata(currentTab);
 
   return (
-    <header className="h-20 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800/80 px-6 flex items-center justify-between sticky top-0 z-20">
-      <div className="flex flex-col">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-white tracking-tight">{title}</h1>
-          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            FoodWise ML Engine
-          </span>
+    <header className="bg-card border-b border-line px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20">
+      <div>
+        <div className="flex items-center gap-2 text-[11px] font-medium text-ink-500 uppercase tracking-wider">
+          <span>{category}</span>
+          <span className="text-ink-300">•</span>
+          <span className="text-olive-700 font-semibold">Central Facility</span>
         </div>
-        <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+        <h1 className="text-xl font-serif font-bold text-ink-900 tracking-tight mt-0.5">
+          {title}
+        </h1>
+        <p className="text-xs text-ink-500 mt-0.5">
+          {description}
+        </p>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Synthetic Data notice badge */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-xs text-slate-300">
-          <ShieldCheck className="w-4 h-4 text-sky-400" />
-          <span>Validated Synthetic Prototype</span>
+      <div className="flex items-center gap-3 shrink-0">
+        {/* Dataset reference */}
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded border border-line bg-canvas-subtle text-[11px] text-ink-600 font-mono">
+          <Database className="w-3.5 h-3.5 text-ink-400" />
+          <span>Demo Data: 1,825 Shifts</span>
         </div>
 
-        {/* Backend connectivity badge */}
+        {/* Backend health status */}
         <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border ${
             backendOnline
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-              : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+              ? 'bg-olive-50 text-olive-800 border-olive-200'
+              : 'bg-terracotta-50 text-terracotta-800 border-terracotta-200'
           }`}
         >
-          <span className={`w-2 h-2 rounded-full ${backendOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-          <span className="hidden sm:inline">{backendOnline ? 'Backend Online (Port 8000)' : 'Backend Disconnected'}</span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              backendOnline ? 'bg-olive-600' : 'bg-terracotta-600'
+            }`}
+          />
+          <span className="text-[11px]">
+            {backendOnline ? 'API Connected' : 'Backend Offline'}
+          </span>
         </div>
 
         {/* Refresh button */}
@@ -73,10 +110,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onRefresh}
             disabled={refreshing}
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
-            title="Refresh dashboard data"
+            className="p-1.5 rounded border border-line bg-card text-ink-600 hover:text-ink-900 hover:bg-canvas-subtle transition-colors disabled:opacity-50"
+            title="Refresh active view"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-amber-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-olive-700' : ''}`} />
           </button>
         )}
       </div>

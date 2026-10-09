@@ -1,92 +1,60 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
 
 interface KpiCardProps {
-  title: string;
+  label: string;
   value: string | number;
-  subtitle: string;
-  icon: LucideIcon;
+  secondaryText: string;
   badge?: string;
-  variant?: 'amber' | 'blue' | 'emerald' | 'rose' | 'purple' | 'slate';
-  tooltip?: string;
+  status?: 'neutral' | 'olive' | 'terracotta' | 'warm';
+  detailFormula?: string;
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
-  title,
+  label,
   value,
-  subtitle,
-  icon: Icon,
+  secondaryText,
   badge,
-  variant = 'amber',
-  tooltip,
+  status = 'neutral',
+  detailFormula,
 }) => {
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'amber':
-        return {
-          iconBg: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-          badge: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-          glow: 'group-hover:border-amber-500/40',
-        };
-      case 'blue':
-        return {
-          iconBg: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
-          badge: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
-          glow: 'group-hover:border-sky-500/40',
-        };
-      case 'emerald':
-        return {
-          iconBg: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-          badge: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-          glow: 'group-hover:border-emerald-500/40',
-        };
-      case 'rose':
-        return {
-          iconBg: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-          badge: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-          glow: 'group-hover:border-rose-500/40',
-        };
-      case 'purple':
-        return {
-          iconBg: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
-          badge: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
-          glow: 'group-hover:border-purple-500/40',
-        };
+  const getBadgeStyle = () => {
+    switch (status) {
+      case 'olive':
+        return 'bg-olive-50 text-olive-800 border-olive-200';
+      case 'terracotta':
+        return 'bg-terracotta-50 text-terracotta-800 border-terracotta-200';
+      case 'warm':
+        return 'bg-warm-50 text-warm-700 border-warm-200';
       default:
-        return {
-          iconBg: 'bg-slate-800 text-slate-300 border border-slate-700',
-          badge: 'bg-slate-800 text-slate-400 border border-slate-700',
-          glow: 'group-hover:border-slate-700',
-        };
+        return 'bg-canvas-subtle text-ink-600 border-line';
     }
   };
 
-  const styles = getVariantStyles();
-
   return (
-    <div
-      className={`group relative bg-[#111827] border border-slate-800/90 rounded-2xl p-5 transition-all duration-200 hover:shadow-lg hover:shadow-black/40 ${styles.glow}`}
-      title={tooltip}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{title}</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">{value}</span>
-          </div>
+    <div className="bg-card border border-line rounded-lg p-4 transition-colors hover:border-line-strong flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-500 font-sans">
+            {label}
+          </span>
+          {badge && (
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${getBadgeStyle()}`}>
+              {badge}
+            </span>
+          )}
         </div>
 
-        <div className={`p-3 rounded-xl ${styles.iconBg} shrink-0`}>
-          <Icon className="w-5 h-5" />
+        <div className="mt-2.5">
+          <span className="font-serif text-2xl lg:text-3xl font-bold text-ink-950 tracking-tight font-tabular">
+            {value}
+          </span>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-800/60 pt-3">
-        <span className="text-[12px] text-slate-400 truncate max-w-[70%]">{subtitle}</span>
-        {badge && (
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${styles.badge}`}>
-            {badge}
-          </span>
+      <div className="mt-3 pt-2.5 border-t border-line/60 flex items-baseline justify-between text-xs">
+        <span className="text-ink-500 text-[11px] truncate">{secondaryText}</span>
+        {detailFormula && (
+          <span className="text-[10px] text-ink-400 font-mono shrink-0 ml-2">{detailFormula}</span>
         )}
       </div>
     </div>

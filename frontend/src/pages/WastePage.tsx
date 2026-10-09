@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Trash2,
+  ClipboardList,
   PlusCircle,
   AlertTriangle,
   CheckCircle2,
-  Calendar,
-  ChefHat,
-  TrendingDown,
-  Info,
-  Coins,
-  History,
-  Sparkles
+  Info
 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
+} from 'recharts';
 import { api } from '../services/api';
 import { WasteRecord, WasteRecordCreate } from '../types';
 
@@ -25,7 +27,6 @@ export const WastePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Form State
   const [formData, setFormData] = useState<WasteRecordCreate>({
     date: new Date().toISOString().split('T')[0],
     menu_type: 'Meals',
@@ -58,23 +59,21 @@ export const WastePage: React.FC = () => {
     setError(null);
     setSuccessMsg(null);
 
-    // Validation
     if (formData.meals_sold > formData.meals_prepared) {
-      setError('Meals sold cannot exceed meals prepared.');
+      setError('Meals sold cannot exceed total portions prepared.');
       setSubmitting(false);
       return;
     }
     if (formData.discarded_meals > formData.meals_prepared) {
-      setError('Discarded meals cannot exceed total meals prepared.');
+      setError('Discarded portions cannot exceed total portions prepared.');
       setSubmitting(false);
       return;
     }
 
     try {
       await api.createWasteRecord(formData);
-      setSuccessMsg('Operational record logged and persisted to CSV successfully.');
+      setSuccessMsg('Operational shift record saved to CSV successfully.');
       await fetchRecords();
-      // Reset notes
       setFormData({
         ...formData,
         notes: '',
@@ -86,21 +85,17 @@ export const WastePage: React.FC = () => {
     }
   };
 
-  // Calculations for current inputs (live preview)
   const previewLeftover = Math.max(0, formData.meals_prepared - formData.meals_sold);
   const previewWastePct = formData.meals_prepared > 0
     ? ((formData.discarded_meals / formData.meals_prepared) * 100).toFixed(1)
     : '0';
   const previewWastedCost = formData.discarded_meals * formData.cost_per_meal;
 
-  // Aggregate stats
   const totalPrepared = records.reduce((acc, r) => acc + r.meals_prepared, 0);
-  const totalSold = records.reduce((acc, r) => acc + r.meals_sold, 0);
   const totalDiscarded = records.reduce((acc, r) => acc + r.discarded_meals, 0);
   const totalWastedCost = records.reduce((acc, r) => acc + r.wasted_cost, 0);
   const avgWastePct = totalPrepared > 0 ? ((totalDiscarded / totalPrepared) * 100).toFixed(1) : '0';
 
-  // Group by Menu for highest-waste categories
   const menuAgg: Record<string, { prepared: number; discarded: number; cost: number }> = {};
   records.forEach((r) => {
     if (!menuAgg[r.menu_type]) {
@@ -121,87 +116,89 @@ export const WastePage: React.FC = () => {
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Trash2 className="w-6 h-6 text-rose-500" />
-            Kitchen Food Waste Operational Tracker
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Log actual cafeteria operations to distinguish between safely reused leftovers and discarded waste.
-          </p>
+      <div className="border-b border-line pb-5">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-500">
+          <span>Kitchen Accounting</span>
+          <span>•</span>
+          <span className="text-olive-700">Production Variance & Loss Log</span>
+        </div>
+        <h2 className="font-serif text-2xl lg:text-3xl font-bold text-ink-950 tracking-tight mt-1">
+          Shift Food Waste & Salvage Log
+        </h2>
+        <p className="text-xs text-ink-500 mt-1 max-w-2xl">
+          Record actual operational kitchen outputs to differentiate unsold food from discarded waste and compute ingredient cost losses.
+        </p>
+      </div>
+
+      {/* Distinction Note */}
+      <div className="p-4 rounded-lg bg-card border border-line flex items-start gap-3">
+        <Info className="w-4 h-4 text-olive-700 shrink-0 mt-0.5" />
+        <div className="text-xs text-ink-600 leading-relaxed">
+          <strong className="text-ink-900 font-semibold">Operational Distinction: Leftover vs. Discarded Food:</strong>
+          {' '}Unsold food (Prepared − Sold) is not automatically classified as waste. Unsold portions safely donated to student dormitories or preserved for reprocessing are salvaged. Only food spoiled or discarded due to expiry is logged as <strong>Discarded Waste</strong>.
         </div>
       </div>
 
-      {/* Distinction Caveat Banner */}
-      <div className="p-4 rounded-2xl bg-[#111827] border border-slate-800 flex items-start gap-3">
-        <Info className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-slate-300 leading-relaxed">
-          <strong className="text-white">Crucial Distinction: Leftover vs. Discarded Food:</strong>
-          {' '}Unsold food (meals prepared minus meals sold) is not necessarily food waste. Unsold meals safely donated to student dormitories, chilled for breakfast reprocessing, or sold at late discounts are salvaged. Only meals explicitly thrown out / spoiled are counted as <strong>Discarded Waste</strong>.
+      {/* Aggregate Metric Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Average Waste Rate</span>
+          <div className="font-serif text-2xl font-bold text-terracotta-700 mt-1 font-tabular">{avgWastePct}%</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block">Of all prepared batch portions</span>
+        </div>
+
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Discarded Portions</span>
+          <div className="font-serif text-2xl font-bold text-ink-950 mt-1 font-tabular">{totalDiscarded} portions</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block">Across {records.length} logged kitchen shifts</span>
+        </div>
+
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Unrecovered Cost Loss</span>
+          <div className="font-serif text-2xl font-bold text-warm-700 mt-1 font-tabular">₹{totalWastedCost.toLocaleString('en-IN')}</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block">Direct ingredient expenditure lost</span>
+        </div>
+
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Storage Architecture</span>
+          <div className="font-serif text-lg font-bold text-olive-800 mt-1">Local CSV Storage</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block font-mono">waste_records.csv</span>
         </div>
       </div>
 
-      {/* High-level Waste KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Average Waste Rate</span>
-          <div className="text-2xl font-black text-rose-400 mt-2">{avgWastePct}%</div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Of all prepared meal volume</span>
-        </div>
-
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Discarded Meals</span>
-          <div className="text-2xl font-black text-white mt-2">{totalDiscarded} meals</div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Across {records.length} operational shifts</span>
-        </div>
-
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estimated Cost Loss</span>
-          <div className="text-2xl font-black text-amber-400 mt-2">₹{totalWastedCost.toLocaleString('en-IN')}</div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Direct ingredient loss</span>
-        </div>
-
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Storage Target</span>
-          <div className="text-2xl font-black text-emerald-400 mt-2">CSV Persistence</div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Stored in backend/data/waste_records.csv</span>
-        </div>
-      </div>
-
-      {/* Main Grid: Entry Form + High-Waste Breakdown */}
+      {/* Shift Entry Form + Category Discard Ranking */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Entry Form (6 cols) */}
         <form
           onSubmit={handleSubmit}
-          className="lg:col-span-6 bg-[#111827] border border-slate-800 rounded-2xl p-6 lg:p-7 space-y-5 shadow-xl"
+          className="lg:col-span-6 bg-card border border-line rounded-lg p-6 space-y-4"
         >
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <PlusCircle className="w-4 h-4 text-rose-500" />
-              Log Kitchen Operational Shift
+          <div className="pb-2 border-b border-line flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-800 flex items-center gap-2">
+              <PlusCircle className="w-3.5 h-3.5 text-olive-700" />
+              Log Kitchen Shift Record
             </h3>
-            <span className="text-[10px] font-mono text-slate-500">CSV Form</span>
+            <span className="text-[10px] font-mono text-ink-400">CSV Form</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Date</label>
+              <label className="text-ink-700 font-medium block mb-1">Shift Date</label>
               <input
                 type="date"
                 required
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 focus:outline-none focus:border-olive-700"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Menu Category</label>
+              <label className="text-ink-700 font-medium block mb-1">Menu Category</label>
               <select
                 value={formData.menu_type}
                 onChange={(e) => setFormData({ ...formData, menu_type: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-semibold focus:outline-none focus:border-olive-700"
               >
                 {MENU_TYPES.map((m) => (
                   <option key={m} value={m}>{m}</option>
@@ -210,91 +207,91 @@ export const WastePage: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Meals Prepared</label>
+              <label className="text-ink-700 font-medium block mb-1">Portions Prepared</label>
               <input
                 type="number"
                 min="0"
                 required
                 value={formData.meals_prepared}
                 onChange={(e) => setFormData({ ...formData, meals_prepared: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-mono focus:outline-none focus:border-olive-700"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Meals Sold</label>
+              <label className="text-ink-700 font-medium block mb-1">Portions Sold</label>
               <input
                 type="number"
                 min="0"
                 required
                 value={formData.meals_sold}
                 onChange={(e) => setFormData({ ...formData, meals_sold: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-mono focus:outline-none focus:border-olive-700"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Discarded / Wasted Meals</label>
+              <label className="text-ink-700 font-medium block mb-1">Discarded Portions</label>
               <input
                 type="number"
                 min="0"
                 required
                 value={formData.discarded_meals}
                 onChange={(e) => setFormData({ ...formData, discarded_meals: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-mono focus:outline-none focus:border-olive-700"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Cost Per Meal (₹)</label>
+              <label className="text-ink-700 font-medium block mb-1">Cost Per Portion (₹)</label>
               <input
                 type="number"
                 min="1"
                 required
                 value={formData.cost_per_meal}
                 onChange={(e) => setFormData({ ...formData, cost_per_meal: parseFloat(e.target.value) || 1 })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 font-mono focus:outline-none focus:border-olive-700"
               />
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">Operational Remarks / Cause</label>
+          <div className="text-xs">
+            <label className="text-ink-700 font-medium block mb-1">Operational Cause / Shift Notes</label>
             <input
               type="text"
-              placeholder="e.g. Rainy evening, hostel event cancellation, or over-preparation"
+              placeholder="e.g. Inclement weather, student symposium cancellation, over-preparation"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"
+              className="w-full bg-canvas-subtle border border-line rounded p-2 text-ink-900 focus:outline-none focus:border-olive-700 text-xs"
             />
           </div>
 
-          {/* Real-time Computed Values Preview */}
-          <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
+          {/* Computed Preview */}
+          <div className="p-3 rounded bg-canvas-subtle border border-line grid grid-cols-3 gap-2 text-center text-xs">
             <div>
-              <span className="text-slate-500 block text-[10px]">Total Leftover</span>
-              <span className="font-bold text-white">{previewLeftover} meals</span>
+              <span className="text-ink-500 block text-[10px]">Unsold Leftover</span>
+              <span className="font-bold text-ink-900 font-mono">{previewLeftover}</span>
             </div>
             <div>
-              <span className="text-slate-500 block text-[10px]">Discard Rate</span>
-              <span className="font-bold text-rose-400">{previewWastePct}%</span>
+              <span className="text-ink-500 block text-[10px]">Discard Rate</span>
+              <span className="font-bold text-terracotta-700 font-mono">{previewWastePct}%</span>
             </div>
             <div>
-              <span className="text-slate-500 block text-[10px]">Wasted Cost</span>
-              <span className="font-bold text-amber-400">₹{previewWastedCost}</span>
+              <span className="text-ink-500 block text-[10px]">Cost Loss</span>
+              <span className="font-bold text-warm-700 font-mono">₹{previewWastedCost}</span>
             </div>
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
+            <div className="p-2.5 rounded border border-terracotta-200 bg-terracotta-50 text-terracotta-800 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-terracotta-600" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="p-2.5 rounded border border-olive-200 bg-olive-50 text-olive-800 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-olive-600" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -302,86 +299,92 @@ export const WastePage: React.FC = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-2.5 rounded text-xs font-semibold bg-olive-700 hover:bg-olive-800 text-white transition-colors disabled:opacity-50"
           >
-            {submitting ? 'Persisting Record...' : 'Save Record to Operational CSV'}
+            {submitting ? 'Saving Shift Record...' : 'Save Record to Operational CSV'}
           </button>
         </form>
 
-        {/* Highest Waste Categories (6 cols) */}
-        <div className="lg:col-span-6 bg-[#111827] border border-slate-800 rounded-2xl p-6 lg:p-7 space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Highest-Waste Categories</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Average discard rate by menu item</p>
-            </div>
+        {/* Highest Discard Categories (6 cols) */}
+        <div className="lg:col-span-6 bg-card border border-line rounded-lg p-6 space-y-4">
+          <div className="pb-2 border-b border-line">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-800">
+              Highest-Waste Menu Categories
+            </h3>
+            <p className="text-xs text-ink-500">
+              Historical discard rate by menu offering
+            </p>
           </div>
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={menuBreakdownChart} layout="vertical" margin={{ top: 10, right: 20, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" horizontal={false} />
-                <XAxis type="number" stroke="#64748B" fontSize={11} tickLine={false} unit="%" />
-                <YAxis dataKey="menu" type="category" stroke="#64748B" fontSize={11} tickLine={false} />
+              <BarChart data={menuBreakdownChart} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" horizontal={false} />
+                <XAxis type="number" stroke="#77807A" fontSize={10} tickLine={false} unit="%" />
+                <YAxis dataKey="menu" type="category" stroke="#77807A" fontSize={11} tickLine={false} width={80} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
-                  formatter={(val: any) => [`${val}%`, 'Waste Rate']}
+                  contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
+                  formatter={(val: any) => [`${val}%`, 'Discard Rate']}
                 />
-                <Bar dataKey="waste_percentage" fill="#EF4444" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="waste_percentage" fill="#AF4326" radius={[0, 2, 2, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Explanation */}
-          <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-            Formula: <code>Waste % = (Discarded Meals / Prepared Meals) × 100</code>. Safely handles zero meals prepared without division errors.
+          <div className="p-3 rounded bg-canvas-subtle border border-line text-[11px] text-ink-500 font-mono">
+            Calculation: Discard % = (Discarded Portions / Prepared Portions) × 100
           </div>
         </div>
       </div>
 
-      {/* Operational Logs History Table */}
-      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <History className="w-4 h-4 text-amber-500" />
-            Operational Log History (CSV Backed)
+      {/* Operational Shift Logs Table */}
+      <div className="border border-line rounded-lg overflow-hidden bg-card space-y-3 p-5">
+        <div className="flex items-center justify-between pb-3 border-b border-line">
+          <h3 className="font-serif text-sm font-bold text-ink-950">
+            Recorded Operational Shift Logs
           </h3>
-          <span className="text-xs text-slate-400 font-mono">{records.length} records logged</span>
+          <span className="text-xs font-mono text-ink-500">{records.length} shifts logged</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900 text-slate-400 uppercase font-semibold border-b border-slate-800">
+            <thead className="bg-canvas-subtle border-b border-line text-ink-600 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3">ID</th>
+                <th className="px-4 py-3">Shift ID</th>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Menu</th>
-                <th className="px-4 py-3">Prepared</th>
-                <th className="px-4 py-3">Sold</th>
-                <th className="px-4 py-3">Leftover</th>
-                <th className="px-4 py-3">Discarded</th>
-                <th className="px-4 py-3">Waste %</th>
-                <th className="px-4 py-3">Cost Loss</th>
-                <th className="px-4 py-3">Remarks</th>
+                <th className="px-4 py-3 text-right">Prepared</th>
+                <th className="px-4 py-3 text-right">Sold</th>
+                <th className="px-4 py-3 text-right">Leftover</th>
+                <th className="px-4 py-3 text-right">Discarded</th>
+                <th className="px-4 py-3 text-right">Waste %</th>
+                <th className="px-4 py-3 text-right">Cost Loss</th>
+                <th className="px-4 py-3">Operational Remarks</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-line text-ink-700">
               {records.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-800/40 transition-colors">
-                  <td className="px-4 py-2.5 font-mono text-slate-500">{r.id}</td>
-                  <td className="px-4 py-2.5 font-mono">{r.date}</td>
-                  <td className="px-4 py-2.5 font-semibold text-white">{r.menu_type}</td>
-                  <td className="px-4 py-2.5 font-mono">{r.meals_prepared}</td>
-                  <td className="px-4 py-2.5 font-mono">{r.meals_sold}</td>
-                  <td className="px-4 py-2.5 font-mono text-sky-400">{r.leftover_meals}</td>
-                  <td className="px-4 py-2.5 font-mono text-rose-400 font-bold">{r.discarded_meals}</td>
-                  <td className="px-4 py-2.5 font-mono">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${r.waste_percentage > 10 ? 'bg-rose-500/10 text-rose-400' : 'bg-slate-800 text-slate-300'}`}>
+                <tr key={r.id} className="hover:bg-canvas-subtle/70 transition-colors">
+                  <td className="px-4 py-2.5 font-mono text-ink-400">{r.id}</td>
+                  <td className="px-4 py-2.5 font-mono text-ink-900">{r.date}</td>
+                  <td className="px-4 py-2.5 font-semibold text-ink-950">{r.menu_type}</td>
+                  <td className="px-4 py-2.5 font-mono text-right font-tabular">{r.meals_prepared}</td>
+                  <td className="px-4 py-2.5 font-mono text-right font-tabular">{r.meals_sold}</td>
+                  <td className="px-4 py-2.5 font-mono text-right font-tabular text-ink-600">{r.leftover_meals}</td>
+                  <td className="px-4 py-2.5 font-mono text-right font-tabular font-bold text-terracotta-700">{r.discarded_meals}</td>
+                  <td className="px-4 py-2.5 font-mono text-right font-tabular">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
+                      r.waste_percentage > 10
+                        ? 'bg-terracotta-50 text-terracotta-800 border-terracotta-200'
+                        : 'bg-canvas-subtle text-ink-600 border-line'
+                    }`}>
                       {r.waste_percentage}%
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-amber-400 font-semibold">₹{r.wasted_cost}</td>
-                  <td className="px-4 py-2.5 text-slate-400 truncate max-w-xs">{r.notes || '—'}</td>
+                  <td className="px-4 py-2.5 font-mono text-right font-tabular text-warm-700 font-semibold">
+                    ₹{r.wasted_cost}
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-500 truncate max-w-xs">{r.notes || '—'}</td>
                 </tr>
               ))}
             </tbody>

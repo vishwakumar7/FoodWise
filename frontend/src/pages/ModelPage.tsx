@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Cpu,
+  Activity,
   RefreshCw,
-  Sparkles,
   CheckCircle2,
   AlertTriangle,
-  Layers,
-  Database,
-  BarChart,
-  ShieldCheck,
-  Award,
-  TrendingUp,
   Info
 } from 'lucide-react';
-import { ResponsiveContainer, BarChart as ReBarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
+} from 'recharts';
 import { api } from '../services/api';
 import { ModelMetrics } from '../types';
 
@@ -47,9 +48,9 @@ export const ModelPage: React.FC = () => {
     try {
       const res = await api.retrainModel();
       setMetrics(res.metrics);
-      setRetrainMsg('Model successfully retrained with latest records and reloaded in memory!');
+      setRetrainMsg('Pipeline retrained and reloaded into active memory successfully.');
     } catch (err: any) {
-      setError(err.message || 'Retraining failed');
+      setError(err.message || 'Pipeline retraining failed');
     } finally {
       setRetraining(false);
     }
@@ -65,157 +66,176 @@ export const ModelPage: React.FC = () => {
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Cpu className="w-6 h-6 text-amber-500" />
-            Machine Learning Pipeline & Evaluation
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Random Forest Regressor evaluated against a baseline dummy model on temporal hold-out test records.
-          </p>
-        </div>
+      <div className="border-b border-line pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-500">
+              <span>Statistical Validation</span>
+              <span>•</span>
+              <span className="text-olive-700">Pipeline Performance & Weights</span>
+            </div>
+            <h2 className="font-serif text-2xl lg:text-3xl font-bold text-ink-950 tracking-tight mt-1">
+              Model Diagnostics & Evaluation
+            </h2>
+            <p className="text-xs text-ink-500 mt-1 max-w-2xl">
+              Inspect test metrics, feature weights, and residual errors computed on strictly unseen chronological test observations.
+            </p>
+          </div>
 
-        <button
-          onClick={handleRetrain}
-          disabled={retraining}
-          className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-2 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${retraining ? 'animate-spin' : ''}`} />
-          {retraining ? 'Retraining Pipeline...' : 'Retrain Model via API'}
-        </button>
+          <button
+            onClick={handleRetrain}
+            disabled={retraining}
+            className="px-4 py-2 rounded text-xs font-semibold bg-olive-700 hover:bg-olive-800 text-white flex items-center gap-2 transition-colors disabled:opacity-50 shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${retraining ? 'animate-spin' : ''}`} />
+            {retraining ? 'Retraining Pipeline...' : 'Retrain Pipeline via API'}
+          </button>
+        </div>
       </div>
 
       {retrainMsg && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
+        <div className="p-3 rounded border border-olive-200 bg-olive-50 text-olive-800 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-olive-600" />
           <span>{retrainMsg}</span>
         </div>
       )}
 
-      {/* Model Spec Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Algorithm</span>
-          <div className="text-xl font-black text-white mt-2">Random Forest</div>
-          <span className="text-[11px] text-amber-400 mt-1 block">100 Estimators, Max Depth 12</span>
+      {/* Architecture Spec Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Algorithm</span>
+          <div className="font-serif text-xl font-bold text-ink-950 mt-1">Random Forest</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block font-mono">100 Trees • Max Depth 12</span>
         </div>
 
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Temporal Train / Test Split</span>
-          <div className="text-xl font-black text-white mt-2">
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Temporal Partition</span>
+          <div className="font-serif text-xl font-bold text-ink-950 mt-1 font-tabular">
             {metrics?.train_records} / {metrics?.test_records}
           </div>
-          <span className="text-[11px] text-sky-400 mt-1 block">80% Train, 20% Test (No Temporal Leakage)</span>
+          <span className="text-[11px] text-ink-400 mt-0.5 block font-mono">80% Train, 20% Test (No Leakage)</span>
         </div>
 
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Model R² Score</span>
-          <div className="text-2xl font-black text-emerald-400 mt-2">{metrics?.r2}</div>
-          <span className="text-[11px] text-slate-500 mt-1 block">High variance explanation</span>
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Test Set R²</span>
+          <div className="font-serif text-2xl font-bold text-olive-800 mt-1 font-tabular">{metrics?.r2}</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block">High variance explanation</span>
         </div>
 
-        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accuracy Improvement</span>
-          <div className="text-2xl font-black text-amber-400 mt-2">+{metrics?.improvement_percent}%</div>
-          <span className="text-[11px] text-slate-500 mt-1 block">MAE reduction over mean baseline</span>
+        <div className="bg-card border border-line rounded-lg p-4">
+          <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Error Reduction</span>
+          <div className="font-serif text-2xl font-bold text-warm-700 mt-1 font-tabular">+{metrics?.improvement_percent}%</div>
+          <span className="text-[11px] text-ink-400 mt-0.5 block">Over mean baseline dummy</span>
         </div>
       </div>
 
-      {/* Benchmark Comparison: Random Forest vs Baseline */}
-      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 lg:p-7 space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-500" />
-              Evaluation Benchmark (Random Forest vs Baseline Dummy)
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Evaluation on strictly unseen chronological test observations</p>
-          </div>
+      {/* Benchmark Evaluation Table */}
+      <div className="border border-line rounded-lg overflow-hidden bg-card space-y-3 p-5">
+        <div className="pb-3 border-b border-line">
+          <h3 className="font-serif text-sm font-bold text-ink-950">
+            Model Benchmark (Random Forest vs Mean Baseline Dummy)
+          </h3>
+          <p className="text-xs text-ink-500">
+            Evaluated on strictly chronologically unseen holdout test observations
+          </p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900 text-slate-400 uppercase font-semibold border-b border-slate-800">
+            <thead className="bg-canvas-subtle border-b border-line text-ink-600 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-4 py-3">Evaluation Metric</th>
                 <th className="px-4 py-3">Baseline Model (Mean Strategy)</th>
                 <th className="px-4 py-3">FoodWise Random Forest</th>
-                <th className="px-4 py-3 text-right">Relative Performance</th>
+                <th className="px-4 py-3 text-right">Relative Accuracy Gain</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-line text-ink-700">
               <tr>
-                <td className="px-4 py-3 font-semibold text-white">Mean Absolute Error (MAE)</td>
-                <td className="px-4 py-3 font-mono text-slate-400">{metrics?.baseline_mae} meals</td>
-                <td className="px-4 py-3 font-mono font-bold text-emerald-400">{metrics?.mae} meals</td>
-                <td className="px-4 py-3 font-mono font-bold text-emerald-400 text-right">
-                  -{metrics?.improvement_percent}% error
+                <td className="px-4 py-3 font-semibold text-ink-950">Mean Absolute Error (MAE)</td>
+                <td className="px-4 py-3 font-mono text-ink-500 font-tabular">{metrics?.baseline_mae} portions</td>
+                <td className="px-4 py-3 font-mono font-bold text-olive-800 font-tabular">{metrics?.mae} portions</td>
+                <td className="px-4 py-3 font-mono font-bold text-olive-800 text-right font-tabular">
+                  -{metrics?.improvement_percent}% error reduction
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-3 font-semibold text-white">Root Mean Squared Error (RMSE)</td>
-                <td className="px-4 py-3 font-mono text-slate-400">{metrics?.baseline_rmse} meals</td>
-                <td className="px-4 py-3 font-mono font-bold text-emerald-400">{metrics?.rmse} meals</td>
-                <td className="px-4 py-3 font-mono font-bold text-emerald-400 text-right">Substantially lower outlier error</td>
+                <td className="px-4 py-3 font-semibold text-ink-950">Root Mean Squared Error (RMSE)</td>
+                <td className="px-4 py-3 font-mono text-ink-500 font-tabular">{metrics?.baseline_rmse} portions</td>
+                <td className="px-4 py-3 font-mono font-bold text-olive-800 font-tabular">{metrics?.rmse} portions</td>
+                <td className="px-4 py-3 text-ink-600 text-right">Substantially lower peak error</td>
               </tr>
               <tr>
-                <td className="px-4 py-3 font-semibold text-white">Coefficient of Determination (R²)</td>
-                <td className="px-4 py-3 font-mono text-slate-400">{metrics?.baseline_r2}</td>
-                <td className="px-4 py-3 font-mono font-bold text-emerald-400">{metrics?.r2}</td>
-                <td className="px-4 py-3 font-mono font-bold text-emerald-400 text-right">Strong predictive fit</td>
+                <td className="px-4 py-3 font-semibold text-ink-950">Coefficient of Determination (R²)</td>
+                <td className="px-4 py-3 font-mono text-ink-500 font-tabular">{metrics?.baseline_r2}</td>
+                <td className="px-4 py-3 font-mono font-bold text-olive-800 font-tabular">{metrics?.r2}</td>
+                <td className="px-4 py-3 text-ink-600 text-right">Strong predictive variance coverage</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Feature Importances Bar Chart */}
-      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 lg:p-7 space-y-5">
-        <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Top Predictive Feature Importances</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Contribution of each input feature to tree ensemble decisions</p>
+      {/* Feature Importances Chart */}
+      <div className="border border-line rounded-lg p-5 bg-card space-y-4">
+        <div className="pb-3 border-b border-line">
+          <h3 className="font-serif text-sm font-bold text-ink-950">
+            Feature Importance Weightings
+          </h3>
+          <p className="text-xs text-ink-500">
+            Relative contribution of each feature to Random Forest decision splits
+          </p>
         </div>
 
-        <div className="h-64 w-full">
+        <div className="h-60 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ReBarChart data={featureChartData} margin={{ top: 10, right: 20, left: 20, bottom: 25 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-              <XAxis dataKey="feature" stroke="#64748B" fontSize={11} tickLine={false} angle={-25} textAnchor="end" />
-              <YAxis stroke="#64748B" fontSize={11} tickLine={false} unit="%" />
+            <BarChart data={featureChartData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="2 2" stroke="#E5E5DF" vertical={false} />
+              <XAxis dataKey="feature" stroke="#77807A" fontSize={10} tickLine={false} angle={-20} textAnchor="end" />
+              <YAxis stroke="#77807A" fontSize={10} tickLine={false} unit="%" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
-                formatter={(val: any) => [`${val}%`, 'Relative Importance']}
+                contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#D3D3CB', borderRadius: '4px', fontSize: '11px', color: '#1F2421' }}
+                formatter={(val: any) => [`${val}%`, 'Relative Weight']}
               />
-              <Bar dataKey="importance" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-            </ReBarChart>
+              <Bar dataKey="importance" fill="#314F3B" radius={[2, 2, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Sample Test Holdout Predictions Table */}
-      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h3 className="text-sm font-bold text-white">Hold-out Test Observations (Actual vs Model Prediction)</h3>
-        <div className="overflow-x-auto max-h-72">
+      {/* Holdout Residual Inspection Table */}
+      <div className="border border-line rounded-lg p-5 bg-card space-y-3">
+        <div className="pb-3 border-b border-line">
+          <h3 className="font-serif text-sm font-bold text-ink-950">
+            Holdout Test Observations & Residual Errors
+          </h3>
+          <p className="text-xs text-ink-500">
+            Sample test set comparison between actual recorded sales and model forecasts
+          </p>
+        </div>
+
+        <div className="overflow-x-auto max-h-64">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900 text-slate-400 uppercase font-semibold sticky top-0 border-b border-slate-800">
+            <thead className="bg-canvas-subtle border-b border-line text-ink-600 font-semibold uppercase tracking-wider text-[11px] sticky top-0">
               <tr>
                 <th className="px-4 py-2.5">Date</th>
                 <th className="px-4 py-2.5">Menu</th>
                 <th className="px-4 py-2.5 text-right">Actual Sold</th>
-                <th className="px-4 py-2.5 text-right">Model Prediction</th>
+                <th className="px-4 py-2.5 text-right">Model Forecast</th>
                 <th className="px-4 py-2.5 text-right">Residual Error</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-line text-ink-700">
               {metrics?.sample_test_predictions.slice(0, 20).map((p, i) => (
-                <tr key={i} className="hover:bg-slate-800/40">
-                  <td className="px-4 py-2 font-mono">{p.date}</td>
-                  <td className="px-4 py-2 font-semibold text-white">{p.menu_type}</td>
-                  <td className="px-4 py-2 font-mono text-right">{p.actual}</td>
-                  <td className="px-4 py-2 font-mono text-right text-amber-400 font-bold">{p.predicted}</td>
-                  <td className="px-4 py-2 font-mono text-right">
-                    <span className={`px-2 py-0.5 rounded text-[10px] ${Math.abs(p.error) <= 10 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                <tr key={i} className="hover:bg-canvas-subtle/70">
+                  <td className="px-4 py-2 font-mono text-ink-900">{p.date}</td>
+                  <td className="px-4 py-2 font-semibold text-ink-950">{p.menu_type}</td>
+                  <td className="px-4 py-2 font-mono text-right font-tabular">{p.actual}</td>
+                  <td className="px-4 py-2 font-mono text-right font-bold text-olive-800 font-tabular">{p.predicted}</td>
+                  <td className="px-4 py-2 font-mono text-right font-tabular">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                      Math.abs(p.error) <= 10 ? 'text-olive-800 bg-olive-50' : 'text-ink-600'
+                    }`}>
                       {p.error > 0 ? `+${p.error}` : p.error}
                     </span>
                   </td>

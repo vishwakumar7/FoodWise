@@ -66,7 +66,7 @@ export function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0B0F19] text-slate-100 antialiased font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-canvas text-ink-900 antialiased font-sans">
       {/* Sidebar */}
       <Sidebar
         currentTab={currentTab}
